@@ -6,7 +6,7 @@ var connection = mysql.createConnection(db);
 
 /* GET customer listing. */
 router.get('/', function (req, res, next) {
-    connection.query("SELECT * FROM customer JOIN sellPrice ON customer.sellPriceId = sellPrice.idSellPrice ", (err, result) => {
+    connection.query("SELECT * FROM customer JOIN sellPrice ON customer.sellPriceId = sellPrice.idSellPrice WHERE isManufacture = 0", (err, result) => {
         res.send(result);
         if (err) {
             console.log(err);
@@ -17,7 +17,7 @@ router.get('/', function (req, res, next) {
 
 
 router.get('/:id', function (req, res, next) {
-    connection.query("SELECT * FROM customer JOIN sellPrice ON customer.sellPriceId = sellPrice.idSellPrice WHERE idCustomer = ?", [req.params.id], (err, result) => {
+    connection.query("SELECT * FROM customer JOIN sellPrice ON customer.sellPriceId = sellPrice.idSellPrice WHERE idCustomer = ? AND isManufacture = 0", [req.params.id], (err, result) => {
         if (result.length > 0) {
             res.send(result[0]);
         } else {
@@ -31,7 +31,7 @@ router.get('/:id', function (req, res, next) {
 
 
 router.get('/user/:id', function (req, res, next) {
-    connection.query("SELECT * FROM customer JOIN sellPrice ON customer.sellPriceId = sellPrice.idSellPrice WHERE createdBy = ?", [req.params.id], (err, result) => {
+    connection.query("SELECT * FROM customer JOIN sellPrice ON customer.sellPriceId = sellPrice.idSellPrice WHERE createdBy = ? AND isManufacture = 0", [req.params.id], (err, result) => {
         res.send(result);
         if (err) {
             console.log(err);
@@ -68,7 +68,7 @@ router.get('/filter/query', function (req, res, next) {
         limit = `LIMIT ${req.query.limit}`
     }
 
-    connection.query(`SELECT * FROM customer JOIN sellPrice ON customer.sellPriceId = sellPrice.idSellPrice WHERE 1=1 ${query} ${order} ${limit}`, (err, result) => {
+    connection.query(`SELECT * FROM customer JOIN sellPrice ON customer.sellPriceId = sellPrice.idSellPrice WHERE isManufacture = 0 ${query} ${order} ${limit}`, (err, result) => {
         res.send(result);
         if (err) {
             console.log(err);
@@ -78,7 +78,7 @@ router.get('/filter/query', function (req, res, next) {
 
 
 router.get('/search/:userId', function (req, res, next) {
-    connection.query(`SELECT * FROM customer JOIN sellPrice ON customer.sellPriceId = sellPrice.idSellPrice WHERE storeName LIKE '%${req.query.name}%' AND createdBy = ${req.params.userId} LIMIT 15`, (err, result) => {
+    connection.query(`SELECT * FROM customer JOIN sellPrice ON customer.sellPriceId = sellPrice.idSellPrice WHERE storeName LIKE '%${req.query.name}%' AND createdBy = ${req.params.userId} AND isManufacture = 0 LIMIT 15`, (err, result) => {
         res.send(result);
         if (err) {
             console.log(err);

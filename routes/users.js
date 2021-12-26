@@ -54,6 +54,16 @@ router.get('/roles/all', function (req, res, next) {
 });
 
 
+router.get('/userinfo/:id', function (req, res, next) {
+  connection.query("SELECT * FROM userInfo WHERE userId = ?", [req.params.id] ,(err, result) => {
+    if (result.length > 0) {
+      res.send(result[0]);
+    } else {
+      res.sendStatus(404);
+    }
+  })
+});
+
 router.get('/count/total', function (req, res, next) {
   connection.query("SELECT * FROM item", (err, result) => {
     res.send({ count: result.length });

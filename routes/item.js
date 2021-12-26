@@ -18,7 +18,7 @@ var upload = multer({ storage: storage })
 
 /* GET item listing. */
 router.get('/', function (req, res, next) {
-    connection.query("SELECT *, (SELECT GROUP_CONCAT(json_object('price',price,'sellPriceId',sellPriceId,'sellPriceName',sellPriceName)) FROM itemPrice JOIN sellPrice ON itemPrice.sellPriceId = sellPrice.idSellPrice WHERE itemPrice.itemId = item.idItem) As prices FROM item LEFT JOIN itemGroup ON item.itemGroupId = itemGroup.idItemGroup", (err, result) => {
+    connection.query("SELECT *, (SELECT GROUP_CONCAT(json_object('price',price,'sellPriceId',sellPriceId,'sellPriceName',sellPriceName, 'delegateTarget',delegateTarget)) FROM itemPrice JOIN sellPrice ON itemPrice.sellPriceId = sellPrice.idSellPrice WHERE itemPrice.itemId = item.idItem) As prices FROM item LEFT JOIN itemGroup ON item.itemGroupId = itemGroup.idItemGroup", (err, result) => {
         result = result.map(row => (row.prices = '[' + row.prices + ']', row));
         result = result.map(row => (row.prices = JSON.parse(row.prices) , row));
         res.send(result);
@@ -37,8 +37,9 @@ router.get('/count', function (req, res, next) {
     })
 });
 
+
 router.get('/store', function (req, res, next) {
-    connection.query("SELECT *, (SELECT @totalPlus := IFNULL(SUM(count), 0) FROM invoiceContent JOIN invoice ON invoiceContent.invoiceId = invoice.idInvoice JOIN invoiceType ON invoice.invoiceTypeId = invoiceType.idInvoiceType WHERE invoiceContent.itemId = item.idItem AND invoiceType.invoiceFunction = 'plus') AS totalPlus, (SELECT @totalMinus := IFNULL(SUM(count), 0) FROM invoiceContent JOIN invoice ON invoiceContent.invoiceId = invoice.idInvoice JOIN invoiceType ON invoice.invoiceTypeId = invoiceType.idInvoiceType WHERE invoiceContent.itemId = item.idItem AND invoiceType.invoiceFunction = 'minus') AS totalMinus, (@totalPlus - @totalMinus) AS store, (SELECT GROUP_CONCAT(json_object('price',price,'sellPriceId',sellPriceId,'sellPriceName',sellPriceName)) FROM itemPrice JOIN sellPrice ON itemPrice.sellPriceId = sellPrice.idSellPrice WHERE itemPrice.itemId = item.idItem) As prices FROM item LEFT JOIN itemGroup ON item.itemGroupId = itemGroup.idItemGroup", (err, result) => {
+    connection.query("SELECT *, (SELECT @totalPlus := IFNULL(SUM(count), 0) FROM invoiceContent JOIN invoice ON invoiceContent.invoiceId = invoice.idInvoice JOIN invoiceType ON invoice.invoiceTypeId = invoiceType.idInvoiceType WHERE invoiceContent.itemId = item.idItem AND invoiceType.invoiceFunction = 'plus') AS totalPlus, (SELECT @totalMinus := IFNULL(SUM(count), 0) FROM invoiceContent JOIN invoice ON invoiceContent.invoiceId = invoice.idInvoice JOIN invoiceType ON invoice.invoiceTypeId = invoiceType.idInvoiceType WHERE invoiceContent.itemId = item.idItem AND invoiceType.invoiceFunction = 'minus') AS totalMinus, (@totalPlus - @totalMinus) AS store, (SELECT GROUP_CONCAT(json_object('price',price,'sellPriceId',sellPriceId,'sellPriceName',sellPriceName,'delegateTarget',delegateTarget)) FROM itemPrice JOIN sellPrice ON itemPrice.sellPriceId = sellPrice.idSellPrice WHERE itemPrice.itemId = item.idItem) As prices FROM item LEFT JOIN itemGroup ON item.itemGroupId = itemGroup.idItemGroup", (err, result) => {
         result = result.map(row => (row.prices = '[' + row.prices + ']', row));
         result = result.map(row => (row.prices = JSON.parse(row.prices) , row));
         res.send(result);
@@ -112,6 +113,18 @@ router.put('/updatePrice/:id', function (req, res, next) {
         }
     })
 });
+
+
+router.post('/itemPrice/new', function (req, res, next) {
+    connection.query(`INSERT INTO itemPrice SET ?`, [req.body] ,(err, result) => {
+        if (err) {
+            res.sendStatus(409);
+        } else {
+            res.send(result);
+        }
+    })
+});
+
 
 router.put('/updateImage/:id', upload.single('itemImage'), function (req, res, next) {
     let imagePath = null;

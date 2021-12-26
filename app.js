@@ -23,6 +23,7 @@ var visitRouter = require('./routes/visit');
 var supervisorDelegates = require('./routes/supervisorDelegates');
 var provinces = require('./routes/provinces');
 var damagedInvoice = require('./routes/damagedItemsInvoice');
+var itemType = require('./routes/itemType');
 
 var app = express();
 
@@ -55,6 +56,7 @@ app.use('/visit', visitRouter);
 app.use('/supervisorDelegates', supervisorDelegates);
 app.use('/provinces', provinces);
 app.use('/damagedInvoice', damagedInvoice);
+app.use('/itemType', itemType);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

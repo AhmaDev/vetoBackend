@@ -3,4 +3,5 @@ module.exports = {
     user: "root",
     password: "",
     database: "veto",
+    multipleStatements: true,
 };
