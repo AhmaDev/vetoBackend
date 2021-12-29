@@ -21,9 +21,11 @@ var settingsRouter = require('./routes/settings');
 var visitCausesRouter = require('./routes/visitCause');
 var visitRouter = require('./routes/visit');
 var supervisorDelegates = require('./routes/supervisorDelegates');
+var deliveryDelegates = require('./routes/deliveryDelegates');
 var provinces = require('./routes/provinces');
 var damagedInvoice = require('./routes/damagedItemsInvoice');
 var itemType = require('./routes/itemType');
+var manufacture = require('./routes/manufacture');
 
 var app = express();
 
@@ -54,9 +56,11 @@ app.use('/settings', settingsRouter);
 app.use('/visitCauses', visitCausesRouter);
 app.use('/visit', visitRouter);
 app.use('/supervisorDelegates', supervisorDelegates);
+app.use('/deliveryDelegates', deliveryDelegates);
 app.use('/provinces', provinces);
 app.use('/damagedInvoice', damagedInvoice);
 app.use('/itemType', itemType);
+app.use('/manufacture', manufacture);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
