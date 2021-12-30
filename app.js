@@ -26,6 +26,8 @@ var provinces = require('./routes/provinces');
 var damagedInvoice = require('./routes/damagedItemsInvoice');
 var itemType = require('./routes/itemType');
 var manufacture = require('./routes/manufacture');
+var reports = require('./routes/reports');
+var deliveryStatus = require('./routes/deliveryStatus');
 
 var app = express();
 
@@ -61,6 +63,8 @@ app.use('/provinces', provinces);
 app.use('/damagedInvoice', damagedInvoice);
 app.use('/itemType', itemType);
 app.use('/manufacture', manufacture);
+app.use('/reports', reports);
+app.use('/deliveryStatus', deliveryStatus);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

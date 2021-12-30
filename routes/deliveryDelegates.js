@@ -15,13 +15,7 @@ router.get('/', function (req, res, next) {
 });
 
 router.get('/userid/:id', function (req, res, next) {
-    console.log(req.query.date);
-    if (req.query.date == undefined || req.query.date == null) {
-        date = "CURRENT_DATE"
-    } else {
-        date = req.query.date
-    }
-    connection.query(`SELECT *, (SELECT username FROM user WHERE idUser = deliveryDelegates.delegateId) As delegateName FROM deliveryDelegates WHERE deliveryId = ? ORDER BY @totalBills ASC`, [req.params.id], (err, result) => {
+    connection.query(`SELECT *, (SELECT username FROM user WHERE idUser = deliveryDelegates.delegateId) As delegateName FROM deliveryDelegates WHERE deliveryId = ?`, [req.params.id], (err, result) => {
         res.send(result);
         if (err) {
             console.log(err);
