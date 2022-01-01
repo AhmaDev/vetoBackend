@@ -15,9 +15,9 @@ router.get('/', function (req, res, next) {
 });
 
 router.get('/userid/:id', function (req, res, next) {
-    console.log(req.query.date);
     if (req.query.date == undefined || req.query.date == null) {
-        date = "CURRENT_DATE"
+        var today = new Date();
+        var date = today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate();
     } else {
         date = req.query.date
     }
