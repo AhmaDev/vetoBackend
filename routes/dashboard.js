@@ -29,6 +29,7 @@ router.get('/mostSellingDelegates' , function (req, res) {
         date = req.query.date
     }
     connection.query(`SELECT idUser,username, (SELECT @total := IFNULL(sum(invoiceContent.total), 0) FROM invoiceContent JOIN invoice ON invoice.idInvoice = invoiceContent.invoiceId WHERE invoice.createdBy = user.idUser AND DATE(invoice.createdAt) = '${date}') As total FROM user LIMIT 7`, (err, result) => {
+        console.log(err);
         if (result.length > 0) {
             res.send(result.sort((a, b) => b.total > a.total ? 1 : -1))
         } else {
@@ -44,6 +45,8 @@ router.get('/mostSellingItems' , function (req, res) {
         date = req.query.date
     }
     connection.query(`SELECT idItem,itemName, (SELECT @total := IFNULL(sum(invoiceContent.total), 0) FROM invoiceContent JOIN invoice ON invoice.idInvoice = invoiceContent.invoiceId WHERE invoiceContent.itemId = item.idItem AND DATE(invoice.createdAt) = '${date}') As total FROM item LIMIT 7`, (err, result) => {
+        console.log(err);
+
         if (result.length > 0) {
             res.send(result.sort((a, b) => b.total > a.total ? 1 : -1))
         } else {
