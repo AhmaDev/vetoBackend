@@ -28,6 +28,7 @@ var itemType = require('./routes/itemType');
 var manufacture = require('./routes/manufacture');
 var reports = require('./routes/reports');
 var deliveryStatus = require('./routes/deliveryStatus');
+var dashboard = require('./routes/dashboard');
 
 var app = express();
 
@@ -65,6 +66,7 @@ app.use('/itemType', itemType);
 app.use('/manufacture', manufacture);
 app.use('/reports', reports);
 app.use('/deliveryStatus', deliveryStatus);
+app.use('/dashboard', dashboard);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
