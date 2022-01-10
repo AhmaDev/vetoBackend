@@ -49,6 +49,7 @@ router.post('/multipleInsert', function (req, res, next) {
                             createdAt: req.body.date,
                             invoices: JSON.stringify(resultInvoices.map((e) => e.idInvoice)),
                             notice: "none",
+                            deliveryStatusType: req.body.deliveryStatusType,
                         });
                     }
                 });

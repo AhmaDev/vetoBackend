@@ -99,6 +99,13 @@ router.get('/delivery/:date', function (req, res, next) {
     })
 });
 
+router.get('/delegate/:delegateId/byItems', function (req, res, next) {
+    connection.query(`SELECT IFNULL(SUM(invoiceContent.total),0) As total, invoiceContent.itemId FROM invoiceContent JOIN invoice ON invoiceContent.invoiceId = invoice.idInvoice WHERE invoice.createdBy = ${req.params.delegateId} AND DATE(invoice.createdAt) = DATE(CURRENT_DATE()) GROUP BY invoiceContent.itemId`, [req.params.date], (err, result) => {
+        console.log(err);
+        res.send(result)
+    })
+});
+
 router.post('/new', function (req, res, next) {
     connection.query("INSERT INTO invoice SET ?", [req.body.invoice], (err, result) => {
         for (let i = 0; i < req.body.invoiceContents.length; i++) {

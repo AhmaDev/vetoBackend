@@ -10,7 +10,9 @@ router.get('/', function(req, res, next) {
 });
 
 
-router.get('/', function(req, res, next) {
+/// NOT FINISHED YET
+
+router.get('/delivering', function(req, res, next) {
     connection.query("SELECT * FROM sellPrice", (err,result) => {
       res.send(result);
       if (err) {

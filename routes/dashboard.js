@@ -22,6 +22,13 @@ router.get('/statistics', function (req, res, next) {
     });
 });
 
+
+router.get('/userSales/:id', function (req, res, next) {
+    connection.query(`SELECT IFNULL(SUM(invoiceContent.total),0) As total FROM invoiceContent JOIN invoice ON invoiceContent.invoiceId = invoice.idInvoice WHERE MONTH(invoice.createdAt) = MONTH(CURRENT_DATE()) AND YEAR(invoice.createdAt) = YEAR(CURRENT_DATE()) AND invoice.createdBy = ${req.params.id} AND invoice.invoiceTypeId = 1`, (err, result) => {
+       res.send(result[0]);
+    });
+});
+
 router.get('/mostSellingDelegates', function (req, res) {
     if (req.query.date == undefined || req.query.date == null) {
         var today = new Date();
