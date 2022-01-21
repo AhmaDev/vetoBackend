@@ -29,6 +29,7 @@ var manufacture = require('./routes/manufacture');
 var reports = require('./routes/reports');
 var deliveryStatus = require('./routes/deliveryStatus');
 var dashboard = require('./routes/dashboard');
+var brand = require('./routes/brand');
 
 var app = express();
 
@@ -67,6 +68,7 @@ app.use('/manufacture', manufacture);
 app.use('/reports', reports);
 app.use('/deliveryStatus', deliveryStatus);
 app.use('/dashboard', dashboard);
+app.use('/brands', brand);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
