@@ -106,6 +106,7 @@ router.post('/new', upload.single('itemImage'), function (req, res, next) {
         minimumStoreNotify: itemInfo.minimumStoreNotify,
         itemWeight: itemInfo.itemWeight,
         itemWeightSuffix: itemInfo.itemWeightSuffix,
+        brandId: itemInfo.brandId,
     }, (err, result) => {
         for (let i = 0; i < itemPrices.length; i++) {
             connection.query(`INSERT INTO itemPrice SET ?`, {

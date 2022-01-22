@@ -14,6 +14,21 @@ router.get('/', function (req, res, next) {
     })
 });
 
+/* GET customer listing. */
+router.get('/searchByName/:type', function (req, res, next) {
+    var isManufacture = 0;
+    if (req.params.type == "customer") {
+        isManufacture = 0;
+    } else {
+        isManufacture = 1;
+    }
+    connection.query(`SELECT * FROM customer JOIN sellPrice ON customer.sellPriceId = sellPrice.idSellPrice WHERE isManufacture = ${isManufacture} AND storeName LIKE '%${req.query.q}%' LIMIT 100`, (err, result) => {
+        res.send(result);
+        if (err) {
+            console.log(err);
+        }
+    })
+});
 
 
 router.get('/:id', function (req, res, next) {
