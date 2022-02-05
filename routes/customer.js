@@ -3,6 +3,18 @@ var router = express.Router();
 var mysql = require('mysql');
 var db = require('../config/database');
 var connection = mysql.createConnection(db);
+var multer = require('multer')
+var path = require('path')
+var storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, path.join(__dirname, "..", "uploads/customer/"))
+    },
+    filename: function (req, file, cb) {
+        cb(null, Date.now() + path.extname(file.originalname)) //Appending extension
+    }
+})
+
+var upload = multer({ storage: storage })
 
 /* GET customer listing. */
 router.get('/', function (req, res, next) {
@@ -36,11 +48,36 @@ router.get('/:id', function (req, res, next) {
         if (result.length > 0) {
             res.send(result[0]);
         } else {
-            res.sendStatus(404)
+            res.sendStatus(404);
         }
-        if (err) {
-            console.log(err);
+    })
+});
+
+router.get('/info/:id', function (req, res, next) {
+    connection.query("SELECT * FROM customerInfo WHERE customerId = ?", [req.params.id], (err, result) => {
+        if (result.length > 0) {
+            res.send(result[0]);
+        } else {
+            res.send({
+                "idCustomerInfo": null,
+                "customerId": null,
+                "employeeName": null,
+                "employeesCount": null,
+                "additionalPhoneNumber": null,
+                "friendPhone": null,
+                "secondFriendPhone": null,
+                "standsCount": null,
+                "customerAge": null,
+                "customerWork": null,
+            });
         }
+    })
+});
+
+router.get('/images/:id', function (req, res, next) {
+    connection.query("SELECT * FROM customerImage WHERE customerId = ?", [req.params.id], (err, result) => {
+        res.send(result);
+
     })
 });
 
@@ -101,13 +138,35 @@ router.get('/search/:userId', function (req, res, next) {
     })
 });
 
-router.post('/new', function (req, res, next) {
-    connection.query("INSERT INTO customer SET ?", [req.body], (err, result) => {
-        res.send(result);
-        if (err) {
+router.post('/new', upload.array('files', 4), function (req, res, next) {
+    connection.query("INSERT INTO customer SET ?", [req.body.customer], (err, result) => {
+        if (!err) {
+            connection.query(`INSERT INTO customerInfo SET ?`, { customerId: result.insertId, ...req.body.customerInfo }, (errCustomerInfo, resultCustomerInfo) => {
+                if (!errCustomerInfo) {
+                    if (req.files.length > 0) {
+                        var files = req.files.map(e => [result.insertId, "uploads/customer/" + e.filename]);
+                        connection.query(`INSERT INTO customerImage (customerId, imagePath) VALUES ?`, [files], (errUploadImages, resultUploadImages) => {
+                            if (errUploadImages) {
+                                console.log("Error while adding a file", errUploadImages);
+                                res.sendStatus(500);
+                                return;
+                            }
+                            res.send('OK');
+                        });
+                    } else {
+                        res.send('OK');
+                    }
+                } else {
+                    console.log(errCustomerInfo);
+                    res.sendStatus(500);
+                }
+            })
+        } else {
             console.log(err);
+            res.sendStatus(500);
+
         }
-    })
+    });
 });
 
 router.put('/edit/:id', function (req, res, next) {
@@ -118,6 +177,16 @@ router.put('/edit/:id', function (req, res, next) {
         }
     })
 });
+
+router.put('/info/:id', function (req, res, next) {
+    connection.query(`UPDATE customerInfo SET ? WHERE customerId = ${req.params['id']}`, [req.body], (err, result) => {
+        res.send(result);
+        if (err) {
+            console.log(err);
+        }
+    })
+});
+
 
 router.put('/edit/multiple/:id', function (req, res, next) {
     connection.query(`UPDATE customer SET ? WHERE idCustomer in (${req.params['id']})`, [req.body], (err, result) => {
