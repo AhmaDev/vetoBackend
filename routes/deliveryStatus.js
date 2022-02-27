@@ -63,6 +63,34 @@ router.post('/multipleInsert', function (req, res, next) {
 });
 
 
+router.post('/damagedMultipleInsert', function (req, res, next) {
+    for (let i = 0; i < req.body.deliveries.length; i++) {
+        connection.query(`SELECT * FROM deliveryDelegates WHERE deliveryId = ${req.body.deliveries[i]}`, (deliveriesErr, deliveriesResult) => {
+            console.log(deliveriesErr);
+            var delegatesIds = JSON.stringify(deliveriesResult.map((e) => e.delegateId)).slice(1, -1);
+            connection.query(`SELECT damagedItemsInvoiceContents.itemId, SUM(count) As count, SUM(totalPrice) As total, damagedItemsInvoice.createdBy , (SELECT itemName FROM item WHERE idItem = damagedItemsInvoiceContents.itemId) As itemName FROM damagedItemsInvoiceContents JOIN damagedItemsInvoice ON damagedItemsInvoiceContents.damagedItemsInvoiceId = damagedItemsInvoice.idDamagedItemsInvoice WHERE damagedItemsInvoice.createdBy IN (${delegatesIds}) AND DATE(damagedItemsInvoice.createdAt) = '${req.body.date}' AND damagedItemsInvoiceContents.count != 0 GROUP BY damagedItemsInvoiceContents.itemId ORDER BY damagedItemsInvoiceContents.itemId`, (err, result) => {
+                console.log(err);
+                connection.query(`SELECT * FROM damagedItemsInvoice WHERE createdBy IN (${delegatesIds}) AND DATE(damagedItemsInvoice.createdAt) = '${req.body.date}'`, (errInvoices, resultInvoices) => {
+                    console.log(errInvoices);
+                    if (result.length > 0) {
+                        connection.query("INSERT IGNORE INTO deliveryStatus SET ?", {
+                            deliveryId: req.body.deliveries[i],
+                            delegates: JSON.stringify(deliveriesResult.map((e) => e.delegateId)),
+                            invoicesData: JSON.stringify(result),
+                            createdAt: req.body.date,
+                            invoices: JSON.stringify(resultInvoices.map((e) => e.idDamagedItemsInvoice)),
+                            notice: "none",
+                            deliveryStatusType: req.body.deliveryStatusType,
+                        });
+                    }
+                });
+            })
+        });
+    }
+    res.sendStatus(200);
+});
+
+
 router.get('/:id', function (req, res, next) {
     connection.query("SELECT *,DATE_FORMAT(createdAt, '%Y-%m-%d') As creationFixedDate, DATE_FORMAT(createdAt, '%W') As creationDayName,  (SELECT username FROM user WHERE idUser = deliveryStatus.deliveryId) As deliveryName FROM deliveryStatus WHERE idDeliveryStatus = ?", [req.params.id], (err, result) => {
         if (result.length > 0) {
