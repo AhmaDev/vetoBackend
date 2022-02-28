@@ -37,7 +37,7 @@ router.get('/userRestores/:id', function (req, res, next) {
 
 
 router.get('/userDamaged/:id', function (req, res, next) {
-    connection.query(`SELECT IFNULL(SUM(damagedItemsInvoiceContent.totalPrice),0) As total FROM damagedItemsInvoiceContent JOIN damagedItemsInvoice ON damagedItemsInvoiceContent.damagedItemsInvoiceId = damagedItemsInvoice.idDamagedItemsInvoice WHERE MONTH(damagedItemsInvoice.createdAt) = MONTH(CURRENT_DATE()) AND YEAR(damagedItemsInvoice.createdAt) = YEAR(CURRENT_DATE()) AND damagedItemsInvoice.createdBy = ${req.params.id}`, (err, result) => {
+    connection.query(`SELECT IFNULL(SUM(damagedItemsInvoiceContents.totalPrice),0) As total FROM damagedItemsInvoiceContents JOIN damagedItemsInvoice ON damagedItemsInvoiceContents.damagedItemsInvoiceId = damagedItemsInvoice.idDamagedItemsInvoice WHERE MONTH(damagedItemsInvoice.createdAt) = MONTH(CURRENT_DATE()) AND YEAR(damagedItemsInvoice.createdAt) = YEAR(CURRENT_DATE()) AND damagedItemsInvoice.createdBy = ${req.params.id}`, (err, result) => {
         res.send(result[0]);
     });
 });
