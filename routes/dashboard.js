@@ -25,15 +25,23 @@ router.get('/statistics', function (req, res, next) {
 
 router.get('/userSales/:id', function (req, res, next) {
     connection.query(`SELECT IFNULL(SUM(invoiceContent.total),0) As total FROM invoiceContent JOIN invoice ON invoiceContent.invoiceId = invoice.idInvoice WHERE MONTH(invoice.createdAt) = MONTH(CURRENT_DATE()) AND YEAR(invoice.createdAt) = YEAR(CURRENT_DATE()) AND invoice.createdBy = ${req.params.id} AND invoice.invoiceTypeId = 1`, (err, result) => {
-       res.send(result[0]);
+        res.send(result[0]);
     });
 });
 
 router.get('/userRestores/:id', function (req, res, next) {
     connection.query(`SELECT IFNULL(SUM(invoiceContent.total),0) As total FROM invoiceContent JOIN invoice ON invoiceContent.invoiceId = invoice.idInvoice WHERE MONTH(invoice.createdAt) = MONTH(CURRENT_DATE()) AND YEAR(invoice.createdAt) = YEAR(CURRENT_DATE()) AND invoice.createdBy = ${req.params.id} AND invoice.invoiceTypeId = 3`, (err, result) => {
-       res.send(result[0]);
+        res.send(result[0]);
     });
 });
+
+
+router.get('/userDamaged/:id', function (req, res, next) {
+    connection.query(`SELECT IFNULL(SUM(damagedItemsInvoiceContent.totalPrice),0) As total FROM damagedItemsInvoiceContent JOIN damagedItemsInvoice ON damagedItemsInvoiceContent.damagedItemsInvoiceId = damagedItemsInvoice.idDamagedItemsInvoice WHERE MONTH(damagedItemsInvoice.createdAt) = MONTH(CURRENT_DATE()) AND YEAR(damagedItemsInvoice.createdAt) = YEAR(CURRENT_DATE()) AND damagedItemsInvoice.createdBy = ${req.params.id}`, (err, result) => {
+        res.send(result[0]);
+    });
+});
+
 
 router.get('/mostSellingDelegates', function (req, res) {
     if (req.query.date == undefined || req.query.date == null) {
