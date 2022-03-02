@@ -38,6 +38,23 @@ router.get('/count', function (req, res, next) {
 });
 
 
+router.get('/detailedStore', function (req, res, next) {
+    if (req.query.from == undefined || req.query.from == null || req.query.to == undefined || req.query.to == null) {
+        var today = new Date();
+        var date1 = "2010-01-01";
+        var date2 = today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate();
+    } else {
+        var date1 = req.query.from
+        var date2 = req.query.to
+    }
+    connection.query(`SELECT imagePath, IFNULL(CONCAT(itemType.itemTypeName , ' ' , itemName,' ' , itemWeight, ' ' ,itemWeightSuffix, ' ' , ' * ' , cartonQauntity , ' ' , brand.brandName), item.itemName) As fullItemName , (SELECT IFNULL(SUM(count),0) FROM invoiceContent JOIN invoice ON invoiceContent.invoiceId = invoice.idInvoice WHERE DATE(invoice.createdAt) BETWEEN '${date1}' AND '${date2}' AND invoiceContent.itemId = item.idItem AND invoice.invoiceTypeId = 1) As totalSell, (SELECT IFNULL(SUM(count),0) FROM invoiceContent JOIN invoice ON invoiceContent.invoiceId = invoice.idInvoice WHERE DATE(invoice.createdAt) BETWEEN '${date1}' AND '${date2}' AND invoiceContent.itemId = item.idItem AND invoice.invoiceTypeId = 2) As totalBuy, (SELECT IFNULL(SUM(count),0) FROM invoiceContent JOIN invoice ON invoiceContent.invoiceId = invoice.idInvoice WHERE DATE(invoice.createdAt) BETWEEN '${date1}' AND '${date2}' AND invoiceContent.itemId = item.idItem AND invoice.invoiceTypeId = 3) As totalRestores, (SELECT IFNULL(SUM(count),0) FROM invoiceContent JOIN invoice ON invoiceContent.invoiceId = invoice.idInvoice WHERE DATE(invoice.createdAt) BETWEEN '${date1}' AND '${date2}' AND invoiceContent.itemId = item.idItem AND invoice.invoiceTypeId = 4) As totalBuyRestores, (SELECT IFNULL(SUM(count),0) FROM invoiceContent JOIN invoice ON invoiceContent.invoiceId = invoice.idInvoice WHERE DATE(invoice.createdAt) BETWEEN '${date1}' AND '${date2}' AND invoiceContent.itemId = item.idItem AND invoice.invoiceTypeId = 5) As totalTempBuy FROM item LEFT JOIN itemGroup ON item.itemGroupId = itemGroup.idItemGroup LEFT JOIN brand ON item.brandId = brand.idBrand LEFT JOIN itemType ON itemType.idItemType = item.itemTypeId`, (err, result) => {
+        res.send(result);
+        if (err) {
+            console.log(err);
+        }
+    })
+});
+
 router.get('/store', function (req, res, next) {
     connection.query("SELECT *,IFNULL(CONCAT(itemType.itemTypeName , ' ' , itemName,' ' , itemWeight, ' ' ,itemWeightSuffix, ' ' , ' * ' , cartonQauntity , ' ' , brand.brandName), item.itemName) As fullItemName, (SELECT @totalPlus := IFNULL(SUM(count), 0) FROM invoiceContent JOIN invoice ON invoiceContent.invoiceId = invoice.idInvoice JOIN invoiceType ON invoice.invoiceTypeId = invoiceType.idInvoiceType WHERE invoiceContent.itemId = item.idItem AND invoiceType.invoiceFunction = 'plus') AS totalPlus, (SELECT @totalMinus := IFNULL(SUM(count), 0) FROM invoiceContent JOIN invoice ON invoiceContent.invoiceId = invoice.idInvoice JOIN invoiceType ON invoice.invoiceTypeId = invoiceType.idInvoiceType WHERE invoiceContent.itemId = item.idItem AND invoiceType.invoiceFunction = 'minus') AS totalMinus, (@totalPlus - @totalMinus) AS store, (SELECT GROUP_CONCAT(json_object('price',price,'sellPriceId',sellPriceId,'sellPriceName',sellPriceName,'delegateTarget',delegateTarget, 'itemDescription', itemDescription , 'damagedItemPrice', damagedItemPrice)) FROM itemPrice JOIN sellPrice ON itemPrice.sellPriceId = sellPrice.idSellPrice WHERE itemPrice.itemId = item.idItem) As prices FROM item LEFT JOIN itemGroup ON item.itemGroupId = itemGroup.idItemGroup LEFT JOIN brand ON item.brandId = brand.idBrand LEFT JOIN itemType ON itemType.idItemType = item.itemTypeId", (err, result) => {
         result = result.map(row => (row.prices = '[' + row.prices + ']', row));
