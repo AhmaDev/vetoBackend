@@ -34,7 +34,11 @@ router.get('/searchByName/:type', function (req, res, next) {
     } else {
         isManufacture = 1;
     }
-    connection.query(`SELECT * FROM customer JOIN sellPrice ON customer.sellPriceId = sellPrice.idSellPrice WHERE isManufacture = ${isManufacture} AND (storeName LIKE '%${req.query.q}%' OR idCustomer = ${req.query.q}) LIMIT 100`, (err, result) => {
+    let query = '';
+    if (req.query.q != undefined) {
+        query = `AND (storeName LIKE '%${req.query.q}%' OR idCustomer = ${req.query.q})`;
+    }
+    connection.query(`SELECT * FROM customer JOIN sellPrice ON customer.sellPriceId = sellPrice.idSellPrice WHERE isManufacture = ${isManufacture} ${query} LIMIT 100`, (err, result) => {
         res.send(result);
         if (err) {
             console.log(err);
