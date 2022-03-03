@@ -28,6 +28,19 @@ router.get('/id/:id', function (req, res, next) {
     })
 });
 
+router.get('/user/:id', function (req, res, next) {
+    connection.query(`SELECT * ,(SELECT storeName FROM customer WHERE idCustomer = damagedItemsInvoice.customerId) As customerName,DATE_FORMAT(createdAt, '%Y-%m-%d') As creationFixedDate, DATE_FORMAT(createdAt, '%T') As creationFixedTime, DATE_FORMAT(createdAt, '%W') As creationDayName ,(SELECT GROUP_CONCAT(json_object('itemId',itemId,'count',count,'idDamagedItemsInvoiceContents',idDamagedItemsInvoiceContents,'itemName',(SELECT  IFNULL(CONCAT(itemType.itemTypeName , ' ' , itemName,' ' , itemWeight, ' ' ,itemWeightSuffix, ' ' , ' * ' , cartonQauntity , ' ' , brand.brandName), item.itemName)  FROM item LEFT JOIN itemGroup ON item.itemGroupId = itemGroup.idItemGroup LEFT JOIN brand ON item.brandId = brand.idBrand LEFT JOIN itemType ON itemType.idItemType = item.itemTypeId WHERE idItem = damagedItemsInvoiceContents.itemId LIMIT 1), 'price', price, 'totalPrice', totalPrice)) FROM damagedItemsInvoiceContents WHERE damagedItemsInvoiceContents.damagedItemsInvoiceId = damagedItemsInvoice.idDamagedItemsInvoice) As items FROM damagedItemsInvoice WHERE damagedItemsInvoice.createdBy IN (${req.params.id})`, (err, result) => {
+        console.log(err);
+        if (result.length > 0) {
+            result = result.map(row => (row.items = '[' + row.items + ']', row));
+            result = result.map(row => (row.items = JSON.parse(row.items), row));
+            res.send(result[0]);
+        } else {
+            res.sendStatus(404)
+        }
+    })
+});
+
 router.post('/multiple', function (req, res, next) {
     connection.query("SELECT * , (SELECT username FROM user WHERE idUser = damagedItemsInvoice.createdBy) As createdByName ,(SELECT storeName FROM customer WHERE idCustomer = damagedItemsInvoice.customerId) As customerName,DATE_FORMAT(damagedItemsInvoice.createdAt, '%Y-%m-%d') As creationFixedDate, DATE_FORMAT(damagedItemsInvoice.createdAt, '%T') As creationFixedTime, DATE_FORMAT(damagedItemsInvoice.createdAt, '%W') As creationDayName ,(SELECT GROUP_CONCAT(json_object('itemId',itemId,'count',count,'idDamagedItemsInvoiceContents',idDamagedItemsInvoiceContents,'itemName',(SELECT  IFNULL(CONCAT(itemType.itemTypeName , ' ' , itemName,' ' , itemWeight, ' ' ,itemWeightSuffix, ' ' , ' * ' , cartonQauntity , ' ' , brand.brandName), item.itemName)  FROM item LEFT JOIN itemGroup ON item.itemGroupId = itemGroup.idItemGroup LEFT JOIN brand ON item.brandId = brand.idBrand LEFT JOIN itemType ON itemType.idItemType = item.itemTypeId WHERE idItem = damagedItemsInvoiceContents.itemId LIMIT 1), 'price', price, 'totalPrice', totalPrice)) FROM damagedItemsInvoiceContents WHERE damagedItemsInvoiceContents.damagedItemsInvoiceId = damagedItemsInvoice.idDamagedItemsInvoice) As items FROM damagedItemsInvoice JOIN customer ON customer.idCustomer = damagedItemsInvoice.customerId JOIN province ON province.idProvince = customer.provinceId WHERE idDamagedItemsInvoice IN (?)", [req.body.invoices], (err, result) => {
         console.log(err);
