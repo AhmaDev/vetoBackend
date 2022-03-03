@@ -34,7 +34,7 @@ router.get('/user/:id', function (req, res, next) {
         if (result.length > 0) {
             result = result.map(row => (row.items = '[' + row.items + ']', row));
             result = result.map(row => (row.items = JSON.parse(row.items), row));
-            res.send(result[0]);
+            res.send(result);
         } else {
             res.sendStatus(404)
         }
