@@ -14,6 +14,20 @@ router.get('/', function(req, res, next) {
   })
 });
 
+router.get('/users/:id', function(req, res, next) {
+  let dateQuery ='';
+  
+  if (req.query.from != undefined) {
+    dateQuery = `AND DATE(invoice.createdAt) BETWEEN '${req.query.from}' AND '${req.query.to}'`;
+  }
+  connection.query(`SELECT invoiceContent.*, discount.*,IFNULL(CONCAT(itemType.itemTypeName , ' ' , itemName,' ' , itemWeight, ' ' ,itemWeightSuffix, ' ' , ' * ' , cartonQauntity , ' ' , brand.brandName), item.itemName) As fullItemName,item.imagePath, SUM(count) As count FROM invoiceContent JOIN item ON item.idItem = invoiceContent.itemId LEFT JOIN brand ON item.brandId = brand.idBrand LEFT JOIN itemType ON itemType.idItemType = item.itemTypeId JOIN invoice ON invoiceContent.invoiceId = invoice.idInvoice LEFT JOIN discount ON invoiceContent.discountTypeId = discount.idDiscount WHERE invoice.createdBy = ${req.params.id} AND invoiceContent.discountTypeId != 0 ${dateQuery} GROUP BY itemId, discountTypeId`, (err,result) => {
+    res.send(result);
+    if (err) {
+      console.log(err);
+    }
+  })
+});
+
 router.post('/new', function(req, res, next) {
     connection.query("INSERT INTO discount SET ?",[req.body], (err,result) => {
       res.send(result);
