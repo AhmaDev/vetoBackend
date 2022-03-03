@@ -45,7 +45,7 @@ router.post('/multipleInsert', function (req, res, next) {
                 connection.query(`SELECT * FROM invoice WHERE invoiceTypeId = 1 AND createdBy IN (${delegatesIds}) AND DATE(invoice.createdAt) = '${req.body.date}'`, (errInvoices, resultInvoices) => {
                     console.log(errInvoices);
                     if (result.length > 0) {
-                        connection.query("INSERT IGNORE INTO deliveryStatus SET ?", {
+                        connection.query("INSERT INTO deliveryStatus SET ?", {
                             deliveryId: req.body.deliveries[i],
                             delegates: JSON.stringify(deliveriesResult.map((e) => e.delegateId)),
                             invoicesData: JSON.stringify(result),
