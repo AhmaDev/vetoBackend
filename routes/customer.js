@@ -18,7 +18,7 @@ var upload = multer({ storage: storage })
 
 /* GET customer listing. */
 router.get('/', function (req, res, next) {
-    connection.query("SELECT * FROM customer JOIN sellPrice ON customer.sellPriceId = sellPrice.idSellPrice WHERE isManufacture = 0", (err, result) => {
+    connection.query("SELECT *, (CONCAT(storeName , ' ' , idCustomer)) As storeName FROM customer JOIN sellPrice ON customer.sellPriceId = sellPrice.idSellPrice WHERE isManufacture = 0", (err, result) => {
         res.send(result);
         if (err) {
             console.log(err);
@@ -34,7 +34,7 @@ router.get('/searchByName/:type', function (req, res, next) {
     } else {
         isManufacture = 1;
     }
-    connection.query(`SELECT * FROM customer JOIN sellPrice ON customer.sellPriceId = sellPrice.idSellPrice WHERE isManufacture = ${isManufacture} AND storeName LIKE '%${req.query.q}%' LIMIT 100`, (err, result) => {
+    connection.query(`SELECT * FROM customer JOIN sellPrice ON customer.sellPriceId = sellPrice.idSellPrice WHERE isManufacture = ${isManufacture} AND (storeName LIKE '%${req.query.q}%' OR idCustomer = ${req.query.q}) LIMIT 100`, (err, result) => {
         res.send(result);
         if (err) {
             console.log(err);
