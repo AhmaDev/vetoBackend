@@ -114,6 +114,7 @@ router.post('/new', upload.single('itemImage'), function (req, res, next) {
         isAvailable: 1,
         manufactureId: itemInfo.manufactureId,
         itemTypeId: itemInfo.itemTypeId,
+        itemType: itemInfo.itemType,
         cartonWidth: itemInfo.cartonWidth,
         cartonHeight: itemInfo.cartonHeight,
         cartonLength: itemInfo.cartonLength,
