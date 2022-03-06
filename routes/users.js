@@ -26,6 +26,15 @@ router.get('/', function (req, res, next) {
   })
 });
 
+router.get('/unsecure/all', function (req, res, next) {
+  connection.query("SELECT * FROM user JOIN role ON user.roleId = role.idRole", (err, result) => {
+    res.send(result);
+    if (err) {
+      console.log(err);
+    }
+  })
+});
+
 
 
 router.get('/:id', function (req, res, next) {
