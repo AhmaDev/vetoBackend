@@ -130,7 +130,7 @@ router.get('/count/total', function (req, res, next) {
 
 /* LOGIN */
 router.post('/login', function (req, res, next) {
-  connection.query("SELECT *, '********' As password  FROM user JOIN role ON user.roleId = role.idRole JOIN userInfo ON user.idUser = userInfo.userId WHERE user.username = ? AND user.password = ?", [
+  connection.query("SELECT *, '********' As password  FROM user LEFT JOIN role ON user.roleId = role.idRole JOIN userInfo ON user.idUser = userInfo.userId WHERE user.username = ? AND user.password = ?", [
     req.body.username,
     req.body.password
   ], (err, result) => {
