@@ -14,13 +14,13 @@ router.get('/', function(req, res, next) {
   })
 });
 
-router.get('/users/:id', function(req, res, next) {
+router.get('/items', function(req, res, next) {
   let dateQuery ='';
   
   if (req.query.from != undefined) {
     dateQuery = `AND DATE(invoice.createdAt) BETWEEN '${req.query.from}' AND '${req.query.to}'`;
   }
-  connection.query(`SELECT invoiceContent.*, discount.*,IFNULL(CONCAT(itemType , ' ' , itemName,' ' , itemWeight, ' ' ,itemWeightSuffix, ' ' , ' * ' , cartonQauntity , ' ' , brand.brandName), item.itemName) As fullItemName,item.imagePath,DATE_FORMAT(invoice.createdAt, '%Y-%m-%d') As creationFixedDate, DATE_FORMAT(invoice.createdAt, '%r') As creationFixedTime, DATE_FORMAT(invoice.createdAt, '%W') As creationDayName , SUM(count) As count FROM invoiceContent JOIN item ON item.idItem = invoiceContent.itemId LEFT JOIN brand ON item.brandId = brand.idBrand LEFT JOIN itemType ON itemType.idItemType = item.itemTypeId JOIN invoice ON invoiceContent.invoiceId = invoice.idInvoice LEFT JOIN discount ON invoiceContent.discountTypeId = discount.idDiscount WHERE invoice.createdBy = ${req.params.id} AND invoiceContent.discountTypeId != 0 ${dateQuery} GROUP BY itemId, discountTypeId`, (err,result) => {
+  connection.query(`SELECT user.username, customer.idCustomer, customer.storeName, invoiceContent.*, discount.*,IFNULL(CONCAT(itemType , ' ' , itemName,' ' , itemWeight, ' ' ,itemWeightSuffix, ' ' , ' * ' , cartonQauntity , ' ' , brand.brandName), item.itemName) As fullItemName,item.imagePath,DATE_FORMAT(invoice.createdAt, '%Y-%m-%d') As creationFixedDate, DATE_FORMAT(invoice.createdAt, '%r') As creationFixedTime, DATE_FORMAT(invoice.createdAt, '%W') As creationDayName , SUM(count) As count, (SELECT IFNULL(SUM(count),0) FROM invoiceContent AS subInvoiceContent WHERE subInvoiceContent.itemId = invoiceContent.itemId AND subInvoiceContent.invoiceId = invoiceContent.invoiceId AND subInvoiceContent.discountTypeId = 0) As notFreeCount, (SELECT IFNULL(SUM(total),0) FROM invoiceContent AS subInvoiceContent WHERE subInvoiceContent.invoiceId = invoiceContent.invoiceId) As totalPrice FROM invoiceContent JOIN item ON item.idItem = invoiceContent.itemId LEFT JOIN brand ON item.brandId = brand.idBrand LEFT JOIN itemType ON itemType.idItemType = item.itemTypeId JOIN invoice ON invoiceContent.invoiceId = invoice.idInvoice LEFT JOIN discount ON invoiceContent.discountTypeId = discount.idDiscount LEFT JOIN customer ON customer.idCustomer = invoice.customerId JOIN user ON user.idUser = invoice.createdBy WHERE invoiceContent.discountTypeId != 0 ${dateQuery} GROUP BY invoice.idInvoice, discountTypeId`, (err,result) => {
     res.send(result);
     if (err) {
       console.log(err);
