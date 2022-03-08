@@ -15,7 +15,7 @@ var server = require("../app").server;
 // Listen on provided port, on all
 // network interfaces.
   
-server.listen(port);
+server.listen(port , '::1');
 server.on('error', onError);
 server.on('listening', onListening);
   
