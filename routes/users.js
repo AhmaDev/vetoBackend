@@ -54,6 +54,25 @@ router.get('/:id', function (req, res, next) {
   })
 });
 
+router.get('/allData/:id', function (req, res, next) {
+  connection.query("SELECT *, '********' As password  FROM user LEFT JOIN role ON user.roleId = role.idRole JOIN userInfo ON user.idUser = userInfo.userId WHERE user.idUser", [
+    req.params.id
+  ], (err, result) => {
+    if (result.length > 0) {
+      connection.query(`SELECT (SELECT permissionKey FROM permission WHERE idPermission = rolePermissions.permissionId) As permissionKey FROM rolePermissions WHERE roleId = ${result[0].roleId}`, (permErr, permRslt) => {
+        result[0].permissions = permRslt;
+        res.send(result[0]);
+        console.log(permErr);
+      });
+    } else {
+      res.sendStatus(404)
+    }
+    if (err) {
+      console.log(err);
+    }
+  })
+});
+
 /* GET users by roleId. */
 router.get('/role/:id', function (req, res, next) {
   connection.query("SELECT *, '********' As password  FROM user JOIN role ON user.roleId = role.idRole WHERE roleId = ?", [req.params['id']], (err, result) => {
