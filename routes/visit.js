@@ -15,7 +15,7 @@ router.get('/', function (req, res, next) {
 });
 
 router.get('/user/:id', function (req, res, next) {
-    connection.query("SELECT * ,DATE_FORMAT(visit.createdAt, '%Y-%m-%d %r') As creationFixedDate FROM visit JOIN user ON visit.createdBy = user.idUser JOIN customer ON customer.idCustomer = visit.customerId JOIN visitCause ON visitCause.idVisitCause = visit.visitCauseId WHERE visit.createdBy = ? AND DATE(visit.createdAt) = ?",[req.params.id, req.query.date], (err, result) => {
+    connection.query(`SELECT * ,DATE_FORMAT(visit.createdAt, '%Y-%m-%d %r') As creationFixedDate FROM visit JOIN user ON visit.createdBy = user.idUser JOIN customer ON customer.idCustomer = visit.customerId JOIN visitCause ON visitCause.idVisitCause = visit.visitCauseId WHERE visit.createdBy = ? AND DATE(visit.createdAt) BETWEEN '${req.query.dateFrom}' AND '${req.query.dateTo}'`,[req.params.id], (err, result) => {
         res.send(result);
         if (err) {
             console.log(err);
