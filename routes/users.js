@@ -55,7 +55,7 @@ router.get('/:id', function (req, res, next) {
 });
 
 router.get('/allData/:id', function (req, res, next) {
-  connection.query("SELECT *, '********' As password  FROM user LEFT JOIN role ON user.roleId = role.idRole JOIN userInfo ON user.idUser = userInfo.userId WHERE user.idUser", [
+  connection.query("SELECT *, '********' As password  FROM user LEFT JOIN role ON user.roleId = role.idRole JOIN userInfo ON user.idUser = userInfo.userId WHERE user.idUser = ?", [
     req.params.id
   ], (err, result) => {
     if (result.length > 0) {
