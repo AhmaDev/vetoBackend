@@ -30,7 +30,7 @@ router.get('/userid/:id', function (req, res, next) {
 });
 
 
-router.get('delegate/:id', function (req, res, next) {
+router.get('/delegate/:id', function (req, res, next) {
     if (req.query.date == undefined || req.query.date == null) {
         var today = new Date();
         var date = today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate();
