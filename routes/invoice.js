@@ -27,16 +27,10 @@ router.get('/id/:id', function (req, res, next) {
 });
 
 router.post('/multiple', function (req, res, next) {
-    connection.query("SELECT *, (SELECT GROUP_CONCAT(json_object('itemId',itemId,'discount',discount,'discountTypeId',discountTypeId,'count',count,'price',price,'total',total,'discountName',(SELECT discountName FROM discount WHERE idDiscount = invoiceContent.discountTypeId LIMIT 1),'itemName',(SELECT  IFNULL(CONCAT(itemType , ' ' , itemName,' ' , itemWeight, ' ' ,itemWeightSuffix, ' ' , ' * ' , cartonQauntity , ' ' , brand.brandName), item.itemName)  FROM item LEFT JOIN itemGroup ON item.itemGroupId = itemGroup.idItemGroup LEFT JOIN brand ON item.brandId = brand.idBrand LEFT JOIN itemType ON itemType.idItemType = item.itemTypeId WHERE idItem = invoiceContent.itemId LIMIT 1))) FROM invoiceContent WHERE invoice.idInvoice = invoiceContent.invoiceId) As items , (SELECT customerName FROM customer WHERE idCustomer = invoice.customerId) As customerName,(SELECT phone FROM customer WHERE idCustomer = invoice.customerId) As customerPhone,(SELECT nearBy FROM customer WHERE idCustomer = invoice.customerId) As customerAddress, (SELECT username FROM user WHERE idUser = invoice.createdBy) As createdByName, (SELECT username FROM user WHERE idUser = invoice.deliveryId) As deliveryName, (SELECT COALESCE(SUM(total),0) FROM invoiceContent WHERE invoiceId = invoice.idInvoice) As totalPrice, (SELECT COUNT(*) FROM invoiceContent WHERE invoiceId = invoice.idInvoice) As totalItems, DATE_FORMAT(createdAt, '%Y-%m-%d') As creationFixedDate, DATE_FORMAT(createdAt, '%T') As creationFixedTime, DATE_FORMAT(createdAt, '%W') As creationDayName FROM invoice JOIN invoiceType ON invoice.invoiceTypeId = invoiceType.idInvoiceType WHERE idInvoice IN (?)", [req.body.invoices], (err, result) => {
+    connection.query("SELECT *, IFNULL((SELECT JSON_ARRAYAGG(json_object('itemId',itemId,'discount',discount,'discountTypeId',discountTypeId,'count',count,'price',price,'total',total,'discountName',(SELECT discountName FROM discount WHERE idDiscount = invoiceContent.discountTypeId LIMIT 1),'itemName',(SELECT  IFNULL(CONCAT(itemType , ' ' , itemName,' ' , itemWeight, ' ' ,itemWeightSuffix, ' ' , ' * ' , cartonQauntity , ' ' , brand.brandName), item.itemName)  FROM item LEFT JOIN itemGroup ON item.itemGroupId = itemGroup.idItemGroup LEFT JOIN brand ON item.brandId = brand.idBrand LEFT JOIN itemType ON itemType.idItemType = item.itemTypeId WHERE idItem = invoiceContent.itemId LIMIT 1))) FROM invoiceContent WHERE invoice.idInvoice = invoiceContent.invoiceId),'[]') As items , (SELECT customerName FROM customer WHERE idCustomer = invoice.customerId) As customerName,(SELECT phone FROM customer WHERE idCustomer = invoice.customerId) As customerPhone,(SELECT nearBy FROM customer WHERE idCustomer = invoice.customerId) As customerAddress, (SELECT username FROM user WHERE idUser = invoice.createdBy) As createdByName, (SELECT username FROM user WHERE idUser = invoice.deliveryId) As deliveryName, (SELECT COALESCE(SUM(total),0) FROM invoiceContent WHERE invoiceId = invoice.idInvoice) As totalPrice, (SELECT COUNT(*) FROM invoiceContent WHERE invoiceId = invoice.idInvoice) As totalItems, DATE_FORMAT(createdAt, '%Y-%m-%d') As creationFixedDate, DATE_FORMAT(createdAt, '%T') As creationFixedTime, DATE_FORMAT(createdAt, '%W') As creationDayName FROM invoice JOIN invoiceType ON invoice.invoiceTypeId = invoiceType.idInvoiceType WHERE idInvoice IN (?)", [req.body.invoices], (err, result) => {
         console.log(err);
         if (result.length > 0) {
-            if (row.items != null) {
-                result = result.map(row => (row.items = '[' + row.items + ']', row));
-                result = result.map(row => (row.items = JSON.parse(row.items), row));
-            } else {
-                result = result.map(row => (row.items = '[]', row));
-                result = result.map(row => (row.items = JSON.parse(row.items), row));
-            }
+            result = result.map(row => (row.items = JSON.parse(row.items), row));
             res.send(result);
         } else {
             res.sendStatus(404)
@@ -177,7 +171,7 @@ router.get('/type', function (req, res, next) {
 });
 
 router.put('/type/:id', function (req, res, next) {
-    connection.query(`UPDATE invoiceType SET ? WHERE idInvoiceType = ?`, [req.body, req.params.id], (err, result) => {
+    connection.query(`UPDATE invoiceType SET ? WHERE idInvoiceType = ?` , [req.body , req.params.id ], (err, result) => {
         res.send(result);
         if (err) {
             console.log(err);
@@ -186,7 +180,7 @@ router.put('/type/:id', function (req, res, next) {
 });
 
 router.delete('/type/:id', function (req, res, next) {
-    connection.query(`DELETE FROM invoiceType WHERE idInvoiceType = ?`, [req.params.id], (err, result) => {
+    connection.query(`DELETE FROM invoiceType WHERE idInvoiceType = ?` , [req.params.id ], (err, result) => {
         res.send(result);
         if (err) {
             console.log(err);
