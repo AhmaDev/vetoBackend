@@ -29,6 +29,19 @@ router.get('/userid/:id', function (req, res, next) {
     })
 });
 
+
+router.get('delegate/:id', function (req, res, next) {
+    if (req.query.date == undefined || req.query.date == null) {
+        var today = new Date();
+        var date = today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate();
+    } else {
+        date = req.query.date
+    }
+    connection.query(`SELECT 'invoice' As type , idInvoice As id, createdBy, customerId, (SELECT storeName FROM customer WHERE idCustomer = invoice.customerId) As customerName, (SELECT IFNULL(SUM(total),0) FROM invoiceContent WHERE invoiceId = invoice.idInvoice) AS total , DATE_FORMAT(createdAt, '%Y-%m-%d') As creationFixedDate, DATE_FORMAT(createdAt, '%r') As creationFixedTime, DATE_FORMAT(createdAt, '%W') As creationDayName FROM invoice WHERE invoice.createdBy = ${req.params.id} AND DATE(invoice.createdAt) = '${req.query.date}' AND invoice.invoiceTypeId = 1 UNION ALL SELECT 'visit' As type, idVisit As id, createdBy, customerId,(SELECT storeName FROM customer WHERE idCustomer = visit.customerId) As customerName, 0 As total, DATE_FORMAT(createdAt, '%Y-%m-%d') As creationFixedDate, DATE_FORMAT(createdAt, '%r') As creationFixedTime, DATE_FORMAT(createdAt, '%W') As creationDayName FROM visit WHERE visit.createdBy = ${req.params.id} AND DATE(visit.createdAt) = '${req.query.date}'`, (err, result) => {
+        res.send(result);
+    });
+})
+
 router.post('/new', function (req, res, next) {
     connection.query("INSERT INTO supervisorDelegates SET ?", [req.body], (err, result) => {
 
