@@ -37,4 +37,15 @@ router.get('/overview', function (req, res, next) {
 });
 
 
+router.get('/delegateItems/:id', function (req, res, next) {
+  connection.query(`SELECT IFNULL(SUM(invoiceContent.total),0) As totalPrice, IFNULL(SUM(invoiceContent.count),0) As totalCount, (SELECT  IFNULL(CONCAT(itemType , ' ' , itemName,' ' , itemWeight, ' ' ,itemWeightSuffix, ' ' , ' * ' , cartonQauntity , ' ' , brand.brandName), item.itemName)  FROM item WHERE invoiceContent.itemtId = item.idItem) As itemName FROM invoiceContent JOIN invoice ON invoiceContent.invoiceId = invoice.idInvoice WHERE DATE(invoice.createdAt) = '${req.query.date}' AND invoice.createdBy = ${req.params.id} AND invoice.invoiceTypeId = ${req.query.type} GROUP BY invoiceContent.itemId`, (err, result) => {
+    if (err) {
+      console.log(err);
+      res.sendStatus(500);
+    } else {
+      res.send(result);
+    }
+  })
+});
+
 module.exports = router;
