@@ -202,7 +202,7 @@ router.put('/edit/multiple/:id', function (req, res, next) {
 });
 
 router.delete('/delete/:id', function (req, res, next) {
-    connection.query(`DELETE FROM customer WHERE idCustomer = ${req.params['id']}`, [req.body], (err, result) => {
+    connection.query(`DELETE FROM customer WHERE idCustomer IN (${req.params['id']})`, [req.body], (err, result) => {
         res.send(result);
         if (err) {
             console.log(err);
