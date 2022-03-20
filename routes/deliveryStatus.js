@@ -37,7 +37,7 @@ router.post('/', function (req, res, next) {
 
 router.post('/multipleInsert', function (req, res, next) {
     if (req.body.deliveryStatusType == 1) {
-        var deliveryIds = JSON.stringify(req.body.deliveries.slice(1, -1));
+        var deliveryIds = JSON.stringify(req.body.deliveries).slice(1, -1);
         connection.query(`SELECT * FROM deliveryDelegates WHERE deliveryId IN (${deliveryIds})`, (deliveriesErr, deliveriesResult) => {
             console.log(deliveriesErr);
             var delegatesIds = JSON.stringify(deliveriesResult.map((e) => e.delegateId)).slice(1, -1);
