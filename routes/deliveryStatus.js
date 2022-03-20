@@ -47,7 +47,7 @@ router.post('/multipleInsert', function (req, res, next) {
                     console.log(errInvoices);
                     if (result.length > 0) {
                         connection.query("INSERT INTO deliveryStatus SET ?", {
-                            deliveryId: req.body.deliveries[i],
+                            deliveryId: req.body.deliveries[0],
                             delegates: JSON.stringify(deliveriesResult.map((e) => e.delegateId)),
                             invoicesData: JSON.stringify(result),
                             createdAt: req.body.date,
