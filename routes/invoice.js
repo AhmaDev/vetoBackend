@@ -125,6 +125,9 @@ router.post('/addItemToInvoice', function (req, res, next) {
     if (req.body.discountTypeId == null) {
         req.body.discountTypeId = 0;
     }
+    if (req.body.discountTypeId == 2) {
+        req.body.discountTypeId = 7;
+    }
     connection.query("INSERT INTO invoiceContent SET ?", [req.body], (err, result) => {
         res.send(result);
     })
