@@ -46,14 +46,14 @@ router.post('/new', function(req, res, next) {
     })
   });
 
-  router.delete('/delete/:id', function(req, res, next) {
-    connection.query(`DELETE FROM discount WHERE idDiscount = ${req.params['id']}`,[req.body], (err,result) => {
-      res.send(result);
-      if (err) {
-        console.log(err);
-      }
-    })
-  });
+  // router.delete('/delete/:id', function(req, res, next) {
+  //   connection.query(`DELETE FROM discount WHERE idDiscount = ${req.params['id']}`,[req.body], (err,result) => {
+  //     res.send(result);
+  //     if (err) {
+  //       console.log(err);
+  //     }
+  //   })
+  // });
 
 
 module.exports = router;
