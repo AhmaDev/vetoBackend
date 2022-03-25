@@ -41,6 +41,7 @@ router.post('/multipleInsert', function (req, res, next) {
         connection.query(`SELECT * FROM deliveryDelegates WHERE deliveryId IN (${deliveryIds})`, (deliveriesErr, deliveriesResult) => {
             console.log(deliveriesErr);
             var delegatesIds = JSON.stringify(deliveriesResult.map((e) => e.delegateId)).slice(1, -1);
+            console.log(delegatesIds);
             connection.query(`SELECT invoiceContent.itemId, SUM(count) As count, SUM(total) As total, invoiceContent.discountTypeId, invoice.createdBy, invoice.sellPriceId, invoice.invoiceTypeId , (SELECT itemName FROM item WHERE idItem = invoiceContent.itemId) As itemName FROM invoiceContent JOIN invoice ON invoiceContent.invoiceId = invoice.idInvoice WHERE invoice.invoiceTypeId = 1 AND invoice.createdBy IN (${delegatesIds}) AND DATE(invoice.createdAt) = '${req.body.date}' AND invoiceContent.count != 0 GROUP BY invoiceContent.itemId, invoiceContent.discountTypeId ORDER BY invoiceContent.itemId , invoiceContent.discountTypeId`, (err, result) => {
                 console.log(err);
                 connection.query(`SELECT * FROM invoice WHERE invoiceTypeId = 1 AND createdBy IN (${delegatesIds}) AND DATE(invoice.createdAt) = '${req.body.date}'`, (errInvoices, resultInvoices) => {
