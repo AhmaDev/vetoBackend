@@ -59,7 +59,7 @@ router.post('/multipleInsert', function (req, res, next) {
                                     invoices: JSON.stringify(resultInvoices.map((e) => e.idInvoice)),
                                     notice: "none",
                                     deliveryStatusType: req.body.deliveryStatusType,
-                                    counter: resultCount[0].totalCount + i + 1,
+                                    counter: resultCount[0].totalCount + 1,
                                 }, (err3, result3) => {
                                     console.log(err3, result3);
                                 });
