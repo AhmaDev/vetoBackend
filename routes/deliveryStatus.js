@@ -46,17 +46,22 @@ router.post('/multipleInsert', function (req, res, next) {
                 connection.query(`SELECT * FROM invoice WHERE invoiceTypeId = 1 AND createdBy IN (${delegatesIds}) AND DATE(invoice.createdAt) = '${req.body.date}'`, (errInvoices, resultInvoices) => {
                     console.log(errInvoices);
                     if (result.length > 0) {
-                        connection.query("INSERT INTO deliveryStatus SET ?", {
-                            deliveryId: req.body.deliveries[0],
-                            delegates: JSON.stringify(deliveriesResult.map((e) => e.delegateId)),
-                            invoicesData: JSON.stringify(result),
-                            createdAt: req.body.date,
-                            invoices: JSON.stringify(resultInvoices.map((e) => e.idInvoice)),
-                            notice: "none",
-                            deliveryStatusType: req.body.deliveryStatusType,
-                        }, (err3, result3) => {
-                            console.log(err3, result3);
-                        });
+                        connection.query(`SELECT COUNT(*) As totalCount FROM deliveryStatus WHERE deliveryStatusType = ${req.body.deliveryStatusType}`, (errCount, resultCount) => {
+                            if (!errCount) {
+                                connection.query("INSERT INTO deliveryStatus SET ?", {
+                                    deliveryId: req.body.deliveries[0],
+                                    delegates: JSON.stringify(deliveriesResult.map((e) => e.delegateId)),
+                                    invoicesData: JSON.stringify(result),
+                                    createdAt: req.body.date,
+                                    invoices: JSON.stringify(resultInvoices.map((e) => e.idInvoice)),
+                                    notice: "none",
+                                    deliveryStatusType: req.body.deliveryStatusType,
+                                    counter: resultCount[0].totalCount + 1,
+                                }, (err3, result3) => {
+                                    console.log(err3, result3);
+                                });
+                            }
+                        })
                     }
                 });
             })
@@ -71,19 +76,25 @@ router.post('/multipleInsert', function (req, res, next) {
                 connection.query(`SELECT invoiceContent.itemId, SUM(count) As count, SUM(total) As total, invoiceContent.discountTypeId, invoice.createdBy, invoice.sellPriceId, invoice.invoiceTypeId , (SELECT itemName FROM item WHERE idItem = invoiceContent.itemId) As itemName FROM invoiceContent JOIN invoice ON invoiceContent.invoiceId = invoice.idInvoice WHERE invoice.invoiceTypeId = 1 AND invoice.createdBy IN (${delegatesIds}) AND DATE(invoice.createdAt) = '${req.body.date}' AND invoiceContent.count != 0 GROUP BY invoiceContent.itemId, invoiceContent.discountTypeId ORDER BY invoiceContent.itemId , invoiceContent.discountTypeId`, (err, result) => {
                     console.log(err);
                     connection.query(`SELECT * FROM invoice WHERE invoiceTypeId = 1 AND createdBy IN (${delegatesIds}) AND DATE(invoice.createdAt) = '${req.body.date}'`, (errInvoices, resultInvoices) => {
-                        console.log(errInvoices);
+
                         if (result.length > 0) {
-                            connection.query("INSERT INTO deliveryStatus SET ?", {
-                                deliveryId: req.body.deliveries[i],
-                                delegates: JSON.stringify(deliveriesResult.map((e) => e.delegateId)),
-                                invoicesData: JSON.stringify(result),
-                                createdAt: req.body.date,
-                                invoices: JSON.stringify(resultInvoices.map((e) => e.idInvoice)),
-                                notice: "none",
-                                deliveryStatusType: req.body.deliveryStatusType,
-                            }, (err3, result3) => {
-                                console.log(err3, result3);
-                            });
+                            connection.query(`SELECT COUNT(*) As totalCount FROM deliveryStatus WHERE deliveryStatusType = ${req.body.deliveryStatusType}`, (errCount, resultCount) => {
+                                if (!errCount) {
+                                    connection.query("INSERT INTO deliveryStatus SET ?", {
+                                        deliveryId: req.body.deliveries[i],
+                                        delegates: JSON.stringify(deliveriesResult.map((e) => e.delegateId)),
+                                        invoicesData: JSON.stringify(result),
+                                        createdAt: req.body.date,
+                                        invoices: JSON.stringify(resultInvoices.map((e) => e.idInvoice)),
+                                        notice: "none",
+                                        deliveryStatusType: req.body.deliveryStatusType,
+                                        counter: resultCount[0].totalCount + 1,
+                                    }, (err3, result3) => {
+                                        console.log(err3, result3);
+                                    });
+                                }
+                            })
+
                         }
                     });
                 })
