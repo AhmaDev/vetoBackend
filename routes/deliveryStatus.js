@@ -95,6 +95,8 @@ router.post('/multipleInsert', function (req, res, next) {
                                     }, (err3, result3) => {
                                         console.log(err3, result3);
                                     });
+                                } else {
+                                    console.log(errCount);
                                 }
                             })
 
