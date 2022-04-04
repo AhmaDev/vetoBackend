@@ -66,7 +66,7 @@ router.get('/mostSellingItems', function (req, res) {
     } else {
         date = req.query.date
     }
-    connection.query(`SELECT idItem,itemName, (SELECT @total := IFNULL(sum(invoiceContent.total), 0) FROM invoiceContent JOIN invoice ON invoice.idInvoice = invoiceContent.invoiceId WHERE invoiceContent.itemId = item.idItem AND DATE(invoice.createdAt) = '${date}') As total FROM item LIMIT 7`, (err, result) => {
+    connection.query(`SELECT idItem,itemName,IFNULL(CONCAT(itemType , ' ' , itemName,' ' , itemWeight, ' ' ,itemWeightSuffix, ' ' , ' * ' , cartonQauntity , ' ' , brand.brandName), item.itemName) As fullItemName, (SELECT @total := IFNULL(sum(invoiceContent.total), 0) FROM invoiceContent JOIN invoice ON invoice.idInvoice = invoiceContent.invoiceId WHERE invoiceContent.itemId = item.idItem AND DATE(invoice.createdAt) = '${date}') As total FROM item LEFT JOIN itemGroup ON item.itemGroupId = itemGroup.idItemGroup LEFT JOIN brand ON item.brandId = brand.idBrand LEFT JOIN itemType ON itemType.idItemType = item.itemTypeId LIMIT 7`, (err, result) => {
         if (result.length > 0) {
             res.send(result.sort((a, b) => b.total > a.total ? 1 : -1))
         } else {
