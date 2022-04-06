@@ -163,7 +163,7 @@ router.post('/login', function (req, res, next) {
     req.body.password
   ], (err, result) => {
     if (result.length > 0) {
-      if (result[0].roleId == 4 && result[0].email == "1") {
+      if ((result[0].roleId == 4 || result[0].roleId == 3) && result[0].email == "1") {
         res.sendStatus(409);
         return;
       } else {
