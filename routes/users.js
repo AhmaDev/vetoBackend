@@ -166,12 +166,16 @@ router.post('/login', function (req, res, next) {
       if (result[0].roleId == 4 && result[0].email == "1") {
         res.sendStatus(409);
         return;
+      } else {
+        connection.query(`UPDATE user SET email = '1' WHERE idUser = ${result[0].idUser}`, (errUpdateStatus, resultUpdateStatus) => {
+          connection.query(`SELECT (SELECT permissionKey FROM permission WHERE idPermission = rolePermissions.permissionId) As permissionKey FROM rolePermissions WHERE roleId = ${result[0].roleId}`, (permErr, permRslt) => {
+            result[0].permissions = permRslt;
+            res.send(result[0]);
+            console.log(permErr);
+          });
+        })
       }
-      connection.query(`SELECT (SELECT permissionKey FROM permission WHERE idPermission = rolePermissions.permissionId) As permissionKey FROM rolePermissions WHERE roleId = ${result[0].roleId}`, (permErr, permRslt) => {
-        result[0].permissions = permRslt;
-        res.send(result[0]);
-        console.log(permErr);
-      });
+
     } else {
       res.sendStatus(404)
     }
