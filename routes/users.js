@@ -154,6 +154,10 @@ router.post('/login', function (req, res, next) {
     req.body.password
   ], (err, result) => {
     if (result.length > 0) {
+      if (result[0].roleId == 4 && result[0].email == "1") {
+        res.sendStatus(409);
+        return;
+      }
       connection.query(`SELECT (SELECT permissionKey FROM permission WHERE idPermission = rolePermissions.permissionId) As permissionKey FROM rolePermissions WHERE roleId = ${result[0].roleId}`, (permErr, permRslt) => {
         result[0].permissions = permRslt;
         res.send(result[0]);
