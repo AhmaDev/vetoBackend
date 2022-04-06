@@ -2,16 +2,16 @@ var express = require('express');
 var router = express.Router();
 var mysql = require('mysql');
 var db = require('../config/database');
-var multer  = require('multer')
+var multer = require('multer')
 var connection = mysql.createConnection(db);
 var path = require('path')
 var storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-        cb(null, path.join(__dirname, ".." ,"uploads/"))
-    },
-    filename: function (req, file, cb) {
-        cb(null, Date.now() + path.extname(file.originalname)) //Appending extension
-    }
+  destination: function (req, file, cb) {
+    cb(null, path.join(__dirname, "..", "uploads/"))
+  },
+  filename: function (req, file, cb) {
+    cb(null, Date.now() + path.extname(file.originalname)) //Appending extension
+  }
 })
 
 var upload = multer({ storage: storage })
@@ -95,7 +95,7 @@ router.get('/roles/all', function (req, res, next) {
 
 
 router.get('/userinfo/:id', function (req, res, next) {
-  connection.query("SELECT * FROM userInfo WHERE userId = ?", [req.params.id] ,(err, result) => {
+  connection.query("SELECT * FROM userInfo WHERE userId = ?", [req.params.id], (err, result) => {
     if (result.length > 0) {
       res.send(result[0]);
     } else {
@@ -105,7 +105,7 @@ router.get('/userinfo/:id', function (req, res, next) {
 });
 
 router.post('/new/userinfo', function (req, res, next) {
-  connection.query("INSERT INTO userInfo SET ?", req.body ,(err, result) => {
+  connection.query("INSERT INTO userInfo SET ?", req.body, (err, result) => {
     res.send(result);
     if (err) {
       console.log(err);
@@ -115,7 +115,7 @@ router.post('/new/userinfo', function (req, res, next) {
 
 
 router.put('/edit/userinfo/:id', function (req, res, next) {
-  connection.query(`UPDATE userInfo SET ? WHERE userId = ${req.params.id}`, req.body ,(err, result) => {
+  connection.query(`UPDATE userInfo SET ? WHERE userId = ${req.params.id}`, req.body, (err, result) => {
     res.send(result);
     if (err) {
       console.log(err);
@@ -127,13 +127,13 @@ router.put('/edit/userinfo/:id', function (req, res, next) {
 router.put('/updateImage/:id', upload.single('userImage'), function (req, res, next) {
   let imagePath = null;
   if (req.file != undefined && req.file.fieldname == 'userImage') {
-      imagePath = "uploads/" + req.file.filename;   
+    imagePath = "uploads/" + req.file.filename;
   }
   connection.query(`UPDATE userInfo SET imagePath = ? WHERE userId = ${req.params['id']}`, [imagePath], (err, result) => {
-      res.send(result);
-      if (err) {
-          console.log(err);
-      }
+    res.send(result);
+    if (err) {
+      console.log(err);
+    }
   })
 });
 
@@ -141,6 +141,15 @@ router.put('/updateImage/:id', upload.single('userImage'), function (req, res, n
 router.get('/count/total', function (req, res, next) {
   connection.query("SELECT * FROM item", (err, result) => {
     res.send({ count: result.length });
+    if (err) {
+      console.log(err);
+    }
+  })
+});
+
+router.post('/logout/:id', function (req, res, next) {
+  connection.query("UPDATE user SET email = '0' WHERE idUser = ?", [req.params.id], (err, result) => {
+    res.sendStatus(200);
     if (err) {
       console.log(err);
     }
