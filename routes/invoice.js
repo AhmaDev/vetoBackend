@@ -147,6 +147,14 @@ router.put('/emptyQuntityOfItem/:itemId', function (req, res, next) {
     })
 });
 
+
+router.put('/emptyQuntityOfItemByDate/:itemId', function (req, res, next) {
+    connection.query(`UPDATE invoiceContent JOIN invoice ON invoice.idInvoice = invoiceContent.invoiceId SET invoiceContent.count = 0 , invoiceContent.total = 0 WHERE invoiceContent.itemId = ? AND DATE(invoice.createdAt) = '${req.query.date}'`, [req.params.itemId], (err, result) => {
+        res.send(result);
+    })
+});
+
+
 router.put('/setDelivery', function (req, res, next) {
     connection.query("UPDATE invoice SET ? WHERE idInvoice IN (?)", [req.body.deliveryId, req.body.invoices], (err, result) => {
         res.send(result);
@@ -174,7 +182,7 @@ router.get('/type', function (req, res, next) {
 });
 
 router.put('/type/:id', function (req, res, next) {
-    connection.query(`UPDATE invoiceType SET ? WHERE idInvoiceType = ?` , [req.body , req.params.id ], (err, result) => {
+    connection.query(`UPDATE invoiceType SET ? WHERE idInvoiceType = ?`, [req.body, req.params.id], (err, result) => {
         res.send(result);
         if (err) {
             console.log(err);
@@ -183,7 +191,7 @@ router.put('/type/:id', function (req, res, next) {
 });
 
 router.delete('/type/:id', function (req, res, next) {
-    connection.query(`DELETE FROM invoiceType WHERE idInvoiceType = ?` , [req.params.id ], (err, result) => {
+    connection.query(`DELETE FROM invoiceType WHERE idInvoiceType = ?`, [req.params.id], (err, result) => {
         res.send(result);
         if (err) {
             console.log(err);

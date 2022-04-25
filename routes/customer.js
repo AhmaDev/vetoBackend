@@ -100,6 +100,7 @@ router.get('/filter/query', function (req, res, next) {
     let query = '';
     let order = '';
     let limit = '';
+    let isManufacture = 0;
 
     if (req.query.id != undefined) {
         query = query + ` AND idCustomer = ${req.query.id}`
@@ -124,7 +125,11 @@ router.get('/filter/query', function (req, res, next) {
         limit = `LIMIT ${req.query.limit}`
     }
 
-    connection.query(`SELECT * FROM customer JOIN sellPrice ON customer.sellPriceId = sellPrice.idSellPrice WHERE isManufacture = 0 ${query} ${order} ${limit}`, (err, result) => {
+    if (req.query.isManufacture != undefined) {
+        isManufacture = req.query.isManufacture;
+    }
+
+    connection.query(`SELECT * FROM customer JOIN sellPrice ON customer.sellPriceId = sellPrice.idSellPrice WHERE isManufacture = ${isManufacture} ${query} ${order} ${limit}`, (err, result) => {
         res.send(result);
         if (err) {
             console.log(err);
@@ -202,7 +207,7 @@ router.put('/edit/multiple/:id', function (req, res, next) {
 });
 
 router.delete('/delete/:id', function (req, res, next) {
-    connection.query(`DELETE FROM customer WHERE idCustomer IN (${req.params['id']})`, [req.body], (err, result) => {
+    connection.query(`UPDATE customer SET isManufacture = 2 WHERE idCustomer IN (${req.params['id']})`, [req.body], (err, result) => {
         res.send(result);
         if (err) {
             console.log(err);
