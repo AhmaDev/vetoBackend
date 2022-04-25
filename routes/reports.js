@@ -62,7 +62,7 @@ router.get('/delegateRail/:id', function (req, res, next) {
 
 
 router.get('/itemRail/:id', function (req, res, next) {
-  connection.query(`SELECT *, DATE_FORMAT(invoice.createdAt, '%Y-%m-%d %r') As creationFixedDate FROM invoiceContent JOIN invoice ON invoice.idInvoice = invoiceContent.invoiceId WHERE invoiceContent.itemId = ${req.params.id}`, (err, result) => {
+  connection.query(`SELECT *, DATE_FORMAT(invoice.createdAt, '%Y-%m-%d %r') As creationFixedDate FROM invoiceContent JOIN invoice ON invoice.idInvoice = invoiceContent.invoiceId LEFT JOIN customer ON customer.idCustomer = invoice.customerId WHERE invoiceContent.itemId = ${req.params.id}`, (err, result) => {
     if (err) {
       console.log(err);
       res.sendStatus(500);
