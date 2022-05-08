@@ -6,7 +6,7 @@ var connection = mysql.createConnection(db);
 
 /* GET customer listing. */
 router.get('/', function (req, res, next) {
-    connection.query("SELECT * ,(SELECT storeName FROM customer WHERE idCustomer = damagedItemsInvoice.customerId) As customerName,DATE_FORMAT(createdAt, '%Y-%m-%d') As creationFixedDate, DATE_FORMAT(createdAt, '%T') As creationFixedTime, DATE_FORMAT(createdAt, '%W') As creationDayName, (SELECT username FROM user WHERE idUser = damagedItemsInvoice.createdBy) As createdByName FROM damagedItemsInvoice", (err, result) => {
+    connection.query("SELECT * ,(SELECT storeName FROM customer WHERE idCustomer = damagedItemsInvoice.customerId) As customerName,DATE_FORMAT(createdAt, '%Y-%m-%d') As creationFixedDate, DATE_FORMAT(createdAt, '%T') As creationFixedTime, DATE_FORMAT(createdAt, '%W') As creationDayName, (SELECT username FROM user WHERE idUser = damagedItemsInvoice.createdBy) As createdByName FROM damagedItemsInvoice ORDER BY idDamagedItemsInvoice DESC", (err, result) => {
         res.send(result);
         if (err) {
             console.log(err);
