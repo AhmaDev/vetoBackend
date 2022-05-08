@@ -20,6 +20,7 @@ router.put('/', function (req, res) {
     connection.query('UPDATE settings SET value = ? WHERE variable = "title"', [req.body.title]);
     connection.query('UPDATE settings SET value = ? WHERE variable = "workStartTime"', [req.body.workStartTime]);
     connection.query('UPDATE settings SET value = ? WHERE variable = "workEndTime"', [req.body.workEndTime]);
+    connection.query('UPDATE settings SET value = ? WHERE variable = "daysToRestoreInvoices"', [req.body.daysToRestoreInvoices]);
     res.send("OK")
 })
 
