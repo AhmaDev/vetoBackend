@@ -68,7 +68,7 @@ router.post("/multipleInsert", function (req, res, next) {
                 console.log(errInvoices);
                 if (result.length > 0) {
                   connection.query(
-                    `SELECT counter As totalCount FROM deliveryStatus WHERE deliveryStatusType = ${req.body.deliveryStatusType} LIMIT 1 ORDER BY counter DESC`,
+                    `SELECT counter As totalCount FROM deliveryStatus WHERE deliveryStatusType = ${req.body.deliveryStatusType} ORDER BY counter DESC LIMIT 1`,
                     (errCount, resultCount) => {
                       if (!errCount) {
                         connection.query(
