@@ -178,19 +178,35 @@ router.post("/damagedMultipleInsert", function (req, res, next) {
               (errInvoices, resultInvoices) => {
                 console.log(errInvoices);
                 if (result.length > 0) {
-                  connection.query("INSERT IGNORE INTO deliveryStatus SET ?", {
-                    deliveryId: req.body.deliveries[i],
-                    delegates: JSON.stringify(
-                      deliveriesResult.map((e) => e.delegateId),
-                    ),
-                    invoicesData: JSON.stringify(result),
-                    createdAt: req.body.date,
-                    invoices: JSON.stringify(
-                      resultInvoices.map((e) => e.idDamagedItemsInvoice),
-                    ),
-                    notice: "none",
-                    deliveryStatusType: req.body.deliveryStatusType,
-                  });
+                  connection.query(
+                    `SELECT counter As totalCount FROM damagedStatus WHERE deliveryStatusType = ${req.body.deliveryStatusType} ORDER BY counter DESC LIMIT 1`,
+                    (errCount, resultCount) => {
+                      if (!errCount) {
+                        connection.query(
+                          "INSERT INTO damagedStatus SET ?",
+                          {
+                            deliveryId: req.body.deliveries[i],
+                            delegates: JSON.stringify(
+                              deliveriesResult.map((e) => e.delegateId),
+                            ),
+                            invoicesData: JSON.stringify(result),
+                            createdAt: req.body.date,
+                            invoices: JSON.stringify(
+                              resultInvoices.map((e) => e.idInvoice),
+                            ),
+                            notice: "none",
+                            deliveryStatusType: req.body.deliveryStatusType,
+                            counter: resultCount[0].totalCount + i + 1,
+                          },
+                          (err3, result3) => {
+                            console.log(err3, result3);
+                          },
+                        );
+                      } else {
+                        console.log(errCount);
+                      }
+                    },
+                  );
                 }
               },
             );
