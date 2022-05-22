@@ -20,6 +20,21 @@ router.get("/", function (req, res, next) {
   );
 });
 
+router.get("/damagedStatus", function (req, res, next) {
+  connection.query(
+    "SELECT *,DATE_FORMAT(createdAt, '%Y-%m-%d') As creationFixedDate, DATE_FORMAT(createdAt, '%W') As creationDayName, (SELECT username FROM user WHERE idUser = damagedStatus.deliveryId) As deliveryName FROM damagedStatus ORDER BY createdAt DESC",
+    (err, result) => {
+      result.forEach((e) => (e.invoicesData = JSON.parse(e.invoicesData)));
+      result.forEach((e) => (e.delegates = JSON.parse(e.delegates)));
+      result.forEach((e) => (e.invoices = JSON.parse(e.invoices)));
+      res.send(result);
+      if (err) {
+        console.log(err);
+      }
+    },
+  );
+});
+
 router.get("/multipleInvoices", function (req, res, next) {
   connection.query(
     `SELECT invoiceContent.itemId, SUM(count) As count, SUM(total) As total, invoiceContent.discountTypeId, invoice.createdBy, invoice.sellPriceId, invoice.invoiceTypeId , (SELECT itemName FROM item WHERE idItem = invoiceContent.itemId) As itemName FROM invoiceContent JOIN invoice ON invoiceContent.invoiceId = invoice.idInvoice WHERE invoice.invoiceTypeId = 1 AND invoice.createdBy IN (${req.query.delegates}) AND DATE(invoice.createdAt) = '${req.query.date}' AND invoiceContent.count != 0 GROUP BY invoiceContent.itemId, invoiceContent.discountTypeId ORDER BY invoiceContent.itemId , invoiceContent.discountTypeId`,
