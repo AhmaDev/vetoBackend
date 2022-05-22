@@ -243,6 +243,7 @@ router.post("/damagedMultipleInsert", function (req, res, next) {
           var delegatesIds = JSON.stringify(
             deliveriesResult.map((e) => e.delegateId),
           ).slice(1, -1);
+          console.log("DEL_IDS:", delegatesIds);
           connection.query(
             `SELECT damagedItemsInvoiceContents.itemId, SUM(count) As count, SUM(totalPrice) As total, damagedItemsInvoice.createdBy , (SELECT itemName FROM item WHERE idItem = damagedItemsInvoiceContents.itemId) As itemName FROM damagedItemsInvoiceContents JOIN damagedItemsInvoice ON damagedItemsInvoiceContents.damagedItemsInvoiceId = damagedItemsInvoice.idDamagedItemsInvoice WHERE damagedItemsInvoice.createdBy IN (${delegatesIds}) AND DATE(damagedItemsInvoice.createdAt) = '${req.body.date}' AND damagedItemsInvoiceContents.count != 0 GROUP BY damagedItemsInvoiceContents.itemId ORDER BY damagedItemsInvoiceContents.itemId`,
             (err, result) => {
