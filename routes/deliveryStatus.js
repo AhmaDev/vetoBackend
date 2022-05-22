@@ -207,7 +207,9 @@ router.post("/damagedMultipleInsert", function (req, res, next) {
                             invoicesData: JSON.stringify(result),
                             createdAt: req.body.date,
                             invoices: JSON.stringify(
-                              resultInvoices.map((e) => e.idInvoice),
+                              resultInvoices.map(
+                                (e) => e.idDamagedItemsInvoice,
+                              ),
                             ),
                             notice: "none",
                             deliveryStatusType: req.body.deliveryStatusType,
