@@ -252,6 +252,23 @@ router.get("/:id", function (req, res, next) {
   );
 });
 
+router.get("/damagedStatus/:id", function (req, res, next) {
+  connection.query(
+    "SELECT *,DATE_FORMAT(createdAt, '%Y-%m-%d') As creationFixedDate, DATE_FORMAT(createdAt, '%W') As creationDayName,  (SELECT username FROM user WHERE idUser = damagedStatus.deliveryId) As deliveryName FROM damagedStatus WHERE idDeliveryStatus = ?",
+    [req.params.id],
+    (err, result) => {
+      if (result.length > 0) {
+        result.forEach((e) => (e.invoicesData = JSON.parse(e.invoicesData)));
+        result.forEach((e) => (e.delegates = JSON.parse(e.delegates)));
+        result.forEach((e) => (e.invoices = JSON.parse(e.invoices)));
+        res.send(result[0]);
+      } else {
+        res.sendStatus(404);
+      }
+    },
+  );
+});
+
 router.put("/:id", function (req, res, next) {
   connection.query(
     "UPDATE deliveryStatus SET ? WHERE idDeliveryStatus = ?",
