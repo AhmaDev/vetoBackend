@@ -176,63 +176,122 @@ router.post("/multipleInsert", function (req, res, next) {
 });
 
 router.post("/damagedMultipleInsert", function (req, res, next) {
-  for (let i = 0; i < req.body.deliveries.length; i++) {
-    connection.query(
-      `SELECT * FROM deliveryDelegates WHERE deliveryId = ${req.body.deliveries[i]}`,
-      (deliveriesErr, deliveriesResult) => {
-        console.log(deliveriesErr);
-        var delegatesIds = JSON.stringify(
-          deliveriesResult.map((e) => e.delegateId),
-        ).slice(1, -1);
-        connection.query(
-          `SELECT damagedItemsInvoiceContents.itemId, SUM(count) As count, SUM(totalPrice) As total, damagedItemsInvoice.createdBy , (SELECT itemName FROM item WHERE idItem = damagedItemsInvoiceContents.itemId) As itemName FROM damagedItemsInvoiceContents JOIN damagedItemsInvoice ON damagedItemsInvoiceContents.damagedItemsInvoiceId = damagedItemsInvoice.idDamagedItemsInvoice WHERE damagedItemsInvoice.createdBy IN (${delegatesIds}) AND DATE(damagedItemsInvoice.createdAt) = '${req.body.date}' AND damagedItemsInvoiceContents.count != 0 GROUP BY damagedItemsInvoiceContents.itemId ORDER BY damagedItemsInvoiceContents.itemId`,
-          (err, result) => {
-            console.log(err);
-            connection.query(
-              `SELECT * FROM damagedItemsInvoice WHERE createdBy IN (${delegatesIds}) AND DATE(damagedItemsInvoice.createdAt) = '${req.body.date}'`,
-              (errInvoices, resultInvoices) => {
-                console.log(errInvoices);
-                if (result.length > 0) {
-                  connection.query(
-                    `SELECT counter As totalCount FROM damagedStatus WHERE deliveryStatusType = ${req.body.deliveryStatusType} ORDER BY counter DESC LIMIT 1`,
-                    (errCount, resultCount) => {
-                      if (!errCount) {
-                        connection.query(
-                          "INSERT INTO damagedStatus SET ?",
-                          {
-                            deliveryId: req.body.deliveries[i],
-                            delegates: JSON.stringify(
-                              deliveriesResult.map((e) => e.delegateId),
-                            ),
-                            invoicesData: JSON.stringify(result),
-                            createdAt: req.body.date,
-                            invoices: JSON.stringify(
-                              resultInvoices.map(
-                                (e) => e.idDamagedItemsInvoice,
+  if (req.body.deliveryStatusType == 2) {
+    for (let i = 0; i < req.body.deliveries.length; i++) {
+      connection.query(
+        `SELECT * FROM deliveryDelegates WHERE deliveryId = ${req.body.deliveries[i]}`,
+        (deliveriesErr, deliveriesResult) => {
+          console.log(deliveriesErr);
+          var delegatesIds = JSON.stringify(
+            deliveriesResult.map((e) => e.delegateId),
+          ).slice(1, -1);
+          connection.query(
+            `SELECT damagedItemsInvoiceContents.itemId, SUM(count) As count, SUM(totalPrice) As total, damagedItemsInvoice.createdBy , (SELECT itemName FROM item WHERE idItem = damagedItemsInvoiceContents.itemId) As itemName FROM damagedItemsInvoiceContents JOIN damagedItemsInvoice ON damagedItemsInvoiceContents.damagedItemsInvoiceId = damagedItemsInvoice.idDamagedItemsInvoice WHERE damagedItemsInvoice.createdBy IN (${delegatesIds}) AND DATE(damagedItemsInvoice.createdAt) = '${req.body.date}' AND damagedItemsInvoiceContents.count != 0 GROUP BY damagedItemsInvoiceContents.itemId ORDER BY damagedItemsInvoiceContents.itemId`,
+            (err, result) => {
+              console.log(err);
+              connection.query(
+                `SELECT * FROM damagedItemsInvoice WHERE createdBy IN (${delegatesIds}) AND DATE(damagedItemsInvoice.createdAt) = '${req.body.date}'`,
+                (errInvoices, resultInvoices) => {
+                  console.log(errInvoices);
+                  if (result.length > 0) {
+                    connection.query(
+                      `SELECT counter As totalCount FROM damagedStatus WHERE deliveryStatusType = ${req.body.deliveryStatusType} ORDER BY counter DESC LIMIT 1`,
+                      (errCount, resultCount) => {
+                        if (!errCount) {
+                          connection.query(
+                            "INSERT INTO damagedStatus SET ?",
+                            {
+                              deliveryId: req.body.deliveries[i],
+                              delegates: JSON.stringify(
+                                deliveriesResult.map((e) => e.delegateId),
                               ),
-                            ),
-                            notice: "none",
-                            deliveryStatusType: req.body.deliveryStatusType,
-                            counter: resultCount[0].totalCount + i + 1,
-                          },
-                          (err3, result3) => {
-                            console.log(err3, result3);
-                          },
-                        );
-                      } else {
-                        console.log(errCount);
-                      }
-                    },
-                  );
-                }
-              },
-            );
-          },
-        );
-      },
-    );
+                              invoicesData: JSON.stringify(result),
+                              createdAt: req.body.date,
+                              invoices: JSON.stringify(
+                                resultInvoices.map(
+                                  (e) => e.idDamagedItemsInvoice,
+                                ),
+                              ),
+                              notice: "none",
+                              deliveryStatusType: req.body.deliveryStatusType,
+                              counter: resultCount[0].totalCount + i + 1,
+                            },
+                            (err3, result3) => {
+                              console.log(err3, result3);
+                            },
+                          );
+                        } else {
+                          console.log(errCount);
+                        }
+                      },
+                    );
+                  }
+                },
+              );
+            },
+          );
+        },
+      );
+    }
+    res.sendStatus(200);
+  } else {
+    for (let i = 0; i < req.body.deliveries.length; i++) {
+      connection.query(
+        `SELECT * FROM deliveryDelegates WHERE deliveryId = ${req.body.deliveries[i]}`,
+        (deliveriesErr, deliveriesResult) => {
+          console.log(deliveriesErr);
+          var delegatesIds = JSON.stringify(
+            deliveriesResult.map((e) => e.delegateId),
+          ).slice(1, -1);
+          connection.query(
+            `SELECT damagedItemsInvoiceContents.itemId, SUM(count) As count, SUM(totalPrice) As total, damagedItemsInvoice.createdBy , (SELECT itemName FROM item WHERE idItem = damagedItemsInvoiceContents.itemId) As itemName FROM damagedItemsInvoiceContents JOIN damagedItemsInvoice ON damagedItemsInvoiceContents.damagedItemsInvoiceId = damagedItemsInvoice.idDamagedItemsInvoice WHERE damagedItemsInvoice.createdBy IN (${delegatesIds}) AND DATE(damagedItemsInvoice.createdAt) = '${req.body.date}' AND damagedItemsInvoiceContents.count != 0 GROUP BY damagedItemsInvoiceContents.itemId ORDER BY damagedItemsInvoiceContents.itemId`,
+            (err, result) => {
+              console.log(err);
+              connection.query(
+                `SELECT * FROM invoice WHERE invoiceTypeId = 1 AND createdBy IN (${delegatesIds}) AND DATE(invoice.createdAt) = '${req.body.date}'`,
+                (errInvoices, resultInvoices) => {
+                  if (result.length > 0) {
+                    connection.query(
+                      `SELECT counter As totalCount FROM deliveryStatus WHERE deliveryStatusType = ${req.body.deliveryStatusType} ORDER BY counter DESC LIMIT 1`,
+                      (errCount, resultCount) => {
+                        if (!errCount) {
+                          connection.query(
+                            "INSERT INTO deliveryStatus SET ?",
+                            {
+                              deliveryId: req.body.deliveries[i],
+                              delegates: JSON.stringify(
+                                deliveriesResult.map((e) => e.delegateId),
+                              ),
+                              invoicesData: JSON.stringify(result),
+                              createdAt: req.body.date,
+                              invoices: JSON.stringify(
+                                resultInvoices.map(
+                                  (e) => e.idDamagedItemsInvoice,
+                                ),
+                              ),
+                              notice: "none",
+                              deliveryStatusType: req.body.deliveryStatusType,
+                              counter: resultCount[0].totalCount + i + 1,
+                            },
+                            (err3, result3) => {
+                              console.log(err3, result3);
+                            },
+                          );
+                        } else {
+                          console.log(errCount);
+                        }
+                      },
+                    );
+                  }
+                },
+              );
+            },
+          );
+        },
+      );
+    }
+    res.sendStatus(200);
   }
-  res.sendStatus(200);
 });
 
 router.get("/:id", function (req, res, next) {
