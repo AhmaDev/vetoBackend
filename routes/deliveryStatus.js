@@ -253,11 +253,11 @@ router.post("/damagedMultipleInsert", function (req, res, next) {
                 (errInvoices, resultInvoices) => {
                   if (result.length > 0) {
                     connection.query(
-                      `SELECT counter As totalCount FROM deliveryStatus WHERE deliveryStatusType = ${req.body.deliveryStatusType} ORDER BY counter DESC LIMIT 1`,
+                      `SELECT counter As totalCount FROM damagedStatus WHERE deliveryStatusType = ${req.body.deliveryStatusType} ORDER BY counter DESC LIMIT 1`,
                       (errCount, resultCount) => {
                         if (!errCount) {
                           connection.query(
-                            "INSERT INTO deliveryStatus SET ?",
+                            "INSERT INTO damagedStatus SET ?",
                             {
                               deliveryId: req.body.deliveries[i],
                               delegates: JSON.stringify(
