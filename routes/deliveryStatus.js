@@ -248,7 +248,7 @@ router.post("/damagedMultipleInsert", function (req, res, next) {
             (err, result) => {
               console.log(err);
               connection.query(
-                `SELECT * FROM invoice WHERE invoiceTypeId = 1 AND createdBy IN (${delegatesIds}) AND DATE(invoice.createdAt) = '${req.body.date}'`,
+                `SELECT * FROM damagedItemsInvoice WHERE createdBy IN (${delegatesIds}) AND DATE(damagedItemsInvoice.createdAt) = '${req.body.date}'`,
                 (errInvoices, resultInvoices) => {
                   if (result.length > 0) {
                     connection.query(
