@@ -2,7 +2,7 @@
 node_modules
 config
 uploads
-
+bin
 
 # local env files
 .env.local
