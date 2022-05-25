@@ -153,6 +153,7 @@ router.post("/new", function (req, res, next) {
         );
       }
       res.send(result);
+      updateStock();
     },
   );
 });
@@ -180,6 +181,7 @@ router.delete("/item/:itemId", function (req, res, next) {
     [req.params.itemId],
     (err, result) => {
       res.send(result);
+      updateStock();
     },
   );
 });
@@ -190,6 +192,7 @@ router.put("/emptyQuntityOfItem/:itemId", function (req, res, next) {
     [req.body, req.params.itemId],
     (err, result) => {
       res.send(result);
+      updateStock();
     },
   );
 });
@@ -200,6 +203,7 @@ router.put("/emptyQuntityOfItemByDate/:itemId", function (req, res, next) {
     [req.params.itemId],
     (err, result) => {
       res.send(result);
+      updateStock();
     },
   );
 });
@@ -283,6 +287,7 @@ router.delete("/delete/:id", function (req, res, next) {
         (err2, result2) => {
           console.log(err);
           console.log(err2);
+          updateStock();
         },
       );
       res.send(result);
@@ -301,6 +306,7 @@ router.delete("/deleteMultiple", function (req, res, next) {
         (err2, result2) => {
           console.log(err);
           console.log(err2);
+          updateStock();
         },
       );
       res.send(result);
