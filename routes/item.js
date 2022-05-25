@@ -150,7 +150,26 @@ router.get("/store", function (req, res, next) {
 
 router.get("/store/sellPriceId/:sellPriceId", function (req, res, next) {
   connection.query(
-    `SELECT *,IFNULL(CONCAT(itemType , ' ' , itemName,' ' , itemWeight, ' ' ,itemWeightSuffix, ' ' , ' * ' , cartonQauntity , ' ' , brand.brandName), item.itemName) As fullItemName, itemStore.stockIn AS totalPlus, itemStore.stockOut AS totalMinus, (itemStore.stockIn - itemStore.stockOut) AS store, (SELECT GROUP_CONCAT(json_object('price',price,'sellPriceId',sellPriceId,'sellPriceName',sellPriceName,'delegateTarget',delegateTarget, 'itemDescription', itemDescription , 'damagedItemPrice', damagedItemPrice)) FROM itemPrice JOIN sellPrice ON itemPrice.sellPriceId = sellPrice.idSellPrice WHERE itemPrice.sellPriceId = ${req.params.sellPriceId} AND itemPrice.itemId = item.idItem) As prices , DATEDIFF(CURRENT_DATE(),item.createdAt) As days  FROM item LEFT JOIN itemGroup ON item.itemGroupId = itemGroup.idItemGroup LEFT JOIN brand ON item.brandId = brand.idBrand LEFT JOIN itemType ON itemType.idItemType = item.itemTypeId LEFT JOIN itemStore ON itemStore.itemId = item.idItem`,
+    `SELECT *,IFNULL(CONCAT(itemType , ' ' , itemName,' ' , itemWeight, ' ' ,itemWeightSuffix, ' ' , ' * ' , cartonQauntity , ' ' , brand.brandName), item.itemName) As fullItemName, itemStore.stockIn AS totalPlus, itemStore.stockOut AS totalMinus, itemStore.stock AS store, (SELECT GROUP_CONCAT(json_object('price',price,'sellPriceId',sellPriceId,'sellPriceName',sellPriceName,'delegateTarget',delegateTarget, 'itemDescription', itemDescription , 'damagedItemPrice', damagedItemPrice)) FROM itemPrice JOIN sellPrice ON itemPrice.sellPriceId = sellPrice.idSellPrice WHERE itemPrice.sellPriceId = ${req.params.sellPriceId} AND itemPrice.itemId = item.idItem) As prices , DATEDIFF(CURRENT_DATE(),item.createdAt) As days  FROM item LEFT JOIN itemGroup ON item.itemGroupId = itemGroup.idItemGroup LEFT JOIN brand ON item.brandId = brand.idBrand LEFT JOIN itemType ON itemType.idItemType = item.itemTypeId LEFT JOIN itemStore ON itemStore.itemId = item.idItem`,
+    (err, result) => {
+      result = result.map(
+        (row) => ((row.prices = "[" + row.prices + "]"), row),
+      );
+      result = result.map(
+        (row) => ((row.prices = JSON.parse(row.prices)), row),
+      );
+      result = result.filter((item) => item.prices[0] != null);
+      res.send(result);
+      if (err) {
+        console.log(err);
+      }
+    },
+  );
+});
+
+router.get("/store/sellPriceIdBackUp/:sellPriceId", function (req, res, next) {
+  connection.query(
+    `SELECT *,IFNULL(CONCAT(itemType , ' ' , itemName,' ' , itemWeight, ' ' ,itemWeightSuffix, ' ' , ' * ' , cartonQauntity , ' ' , brand.brandName), item.itemName) As fullItemName, (SELECT @totalPlus := IFNULL(SUM(count), 0) FROM invoiceContent JOIN invoice ON invoiceContent.invoiceId = invoice.idInvoice JOIN invoiceType ON invoice.invoiceTypeId = invoiceType.idInvoiceType WHERE invoiceContent.itemId = item.idItem AND invoiceType.invoiceFunction = 'plus') AS totalPlus, (SELECT @totalMinus := IFNULL(SUM(count), 0) FROM invoiceContent JOIN invoice ON invoiceContent.invoiceId = invoice.idInvoice JOIN invoiceType ON invoice.invoiceTypeId = invoiceType.idInvoiceType WHERE invoiceContent.itemId = item.idItem AND invoiceType.invoiceFunction = 'minus') AS totalMinus, (@totalPlus - @totalMinus) AS store, (SELECT GROUP_CONCAT(json_object('price',price,'sellPriceId',sellPriceId,'sellPriceName',sellPriceName,'delegateTarget',delegateTarget, 'itemDescription', itemDescription , 'damagedItemPrice', damagedItemPrice)) FROM itemPrice JOIN sellPrice ON itemPrice.sellPriceId = sellPrice.idSellPrice WHERE itemPrice.sellPriceId = ${req.params.sellPriceId} AND itemPrice.itemId = item.idItem) As prices , DATEDIFF(CURRENT_DATE(),item.createdAt) As days  FROM item LEFT JOIN itemGroup ON item.itemGroupId = itemGroup.idItemGroup LEFT JOIN brand ON item.brandId = brand.idBrand LEFT JOIN itemType ON itemType.idItemType = item.itemTypeId`,
     (err, result) => {
       result = result.map(
         (row) => ((row.prices = "[" + row.prices + "]"), row),
