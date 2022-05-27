@@ -91,7 +91,7 @@ router.get("/filter", function (req, res, next) {
   }
 
   connection.query(
-    `SELECT * ,(SELECT storeName FROM customer WHERE idCustomer = damagedItemsInvoice.customerId) As customerName,DATE_FORMAT(createdAt, '%Y-%m-%d') As creationFixedDate, DATE_FORMAT(createdAt, '%T') As creationFixedTime, DATE_FORMAT(createdAt, '%W') As creationDayName, (SELECT username FROM user WHERE idUser = damagedItemsInvoice.createdBy) As createdByName FROM damagedItemsInvoice WHERE 1=1 ${query} ${order} ${limit}`,
+    `SELECT * ,(SELECT customerName FROM customer WHERE idCustomer = damagedItemsInvoice.customerId) As customerName ,(SELECT storeName FROM customer WHERE idCustomer = damagedItemsInvoice.customerId) As storeName ,DATE_FORMAT(createdAt, '%Y-%m-%d') As creationFixedDate, DATE_FORMAT(createdAt, '%T') As creationFixedTime, DATE_FORMAT(createdAt, '%W') As creationDayName, (SELECT username FROM user WHERE idUser = damagedItemsInvoice.createdBy) As createdByName FROM damagedItemsInvoice WHERE 1=1 ${query} ${order} ${limit}`,
     (err, result) => {
       res.send(result);
       console.log(err);
