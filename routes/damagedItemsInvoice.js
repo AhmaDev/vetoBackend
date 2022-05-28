@@ -135,6 +135,7 @@ router.post("/multiple", function (req, res, next) {
       console.log(err);
       console.log(req.body);
       if (result.length > 0) {
+        console.log(result);
         result = result.map(
           (row) => ((row.items = "[" + row.items + "]"), row),
         );
