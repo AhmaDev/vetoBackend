@@ -133,12 +133,7 @@ router.post("/multiple", function (req, res, next) {
     [req.body.invoices],
     (err, result) => {
       console.log(err);
-      console.log(req.body);
       if (result.length > 0) {
-        console.log(result);
-        result = result.map(
-          (row) => ((row.items = "[" + row.items + "]"), row),
-        );
         result = result.map(
           (row) => ((row.items = JSON.parse(row.items)), row),
         );
