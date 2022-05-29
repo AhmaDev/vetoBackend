@@ -40,7 +40,7 @@ router.get("/id/:id", function (req, res, next) {
 
 router.get("/user/:id", function (req, res, next) {
   connection.query(
-    `SELECT * ,(SELECT storeName FROM customer WHERE idCustomer = damagedItemsInvoice.customerId) As customerName,DATE_FORMAT(createdAt, '%Y-%m-%d') As creationFixedDate, DATE_FORMAT(createdAt, '%T') As creationFixedTime, DATE_FORMAT(createdAt, '%W') As creationDayName, (SELECT SUM(totalPrice) FROM damagedItemsInvoiceContents WHERE damagedItemsInvoiceContents.damagedItemsInvoiceId = damagedItemsInvoice.idDamagedItemsInvoice) As total FROM damagedItemsInvoice WHERE DATE(damagedItemsInvoice.createdAt) = '${req.query.date}' AND damagedItemsInvoice.createdBy IN (${req.params.id})`,
+    `SELECT * ,(SELECT storeName FROM customer WHERE idCustomer = damagedItemsInvoice.customerId) As customerName,DATE_FORMAT(createdAt, '%Y-%m-%d') As creationFixedDate, DATE_FORMAT(createdAt, '%T') As creationFixedTime, DATE_FORMAT(createdAt, '%W') As creationDayName, (SELECT SUM(totalPrice) FROM damagedItemsInvoiceContents WHERE damagedItemsInvoiceContents.damagedItemsInvoiceId = damagedItemsInvoice.idDamagedItemsInvoice) As total FROM damagedItemsInvoice WHERE DATE(damagedItemsInvoice.createdAt) = '${req.query.date}' AND damagedItemsInvoice.createdBy IN (${req.params.id}) ORDER BY damagedItemsInvoice.createdBy, damagedItemsInvoice.idDamagedItemsInvoice`,
     (err, result) => {
       console.log(err);
       if (result.length > 0) {
