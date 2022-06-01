@@ -176,7 +176,7 @@ router.post("/multipleInsert", function (req, res, next) {
 });
 
 router.post("/damagedMultipleInsert", function (req, res, next) {
-  if (req.body.deliveryStatusType == 4) {
+  if (req.body.deliveryStatusType == 3) {
     var deliveryIds = JSON.stringify(req.body.deliveries).slice(1, -1);
     console.log("deliveryIds", deliveryIds);
     connection.query(
