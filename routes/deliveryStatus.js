@@ -180,7 +180,7 @@ router.post("/damagedMultipleInsert", function (req, res, next) {
     var deliveryIds = JSON.stringify(req.body.deliveries).slice(1, -1);
     console.log("deliveryIds", deliveryIds);
     connection.query(
-      `SELECT * FROM deliveryDelegates WHERE deliveryId = ${deliveryIds}`,
+      `SELECT * FROM deliveryDelegates WHERE deliveryId IN (${deliveryIds})`,
       (deliveriesErr, deliveriesResult) => {
         console.log(deliveriesErr);
         var delegatesIds = JSON.stringify(
