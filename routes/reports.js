@@ -66,6 +66,19 @@ router.get("/delegateItems/:id", function (req, res, next) {
     },
   );
 });
+router.get("/delegateDamagedItems/:id", function (req, res, next) {
+  connection.query(
+    `SELECT IFNULL(SUM(damagedItemsInvoiceContents.totalPrice),0) As totalPrice, IFNULL(SUM(damagedItemsInvoiceContents.count),0) As totalCount, (SELECT  IFNULL(CONCAT(itemType , ' ' , itemName,' ' , itemWeight, ' ' ,itemWeightSuffix, ' ' , ' * ' , cartonQauntity , ' ' , brand.brandName), item.itemName)  FROM item LEFT JOIN itemGroup ON item.itemGroupId = itemGroup.idItemGroup LEFT JOIN brand ON item.brandId = brand.idBrand LEFT JOIN itemType ON itemType.idItemType = item.itemTypeId  WHERE damagedItemsInvoiceContents.itemId = item.idItem LIMIT 1) As itemName FROM damagedItemsInvoiceContents JOIN damagedItemsInvoice ON damagedItemsInvoiceContents.damagedItemsInvoiceId = damagedItemsInvoice.idDamagedItemsInvoice WHERE DATE(damagedItemsInvoice.createdAt) = '${req.query.date}' AND damagedItemsInvoice.createdBy = ${req.params.id} GROUP BY damagedItemsInvoiceContents.itemId ORDER BY totalCount DESC`,
+    (err, result) => {
+      if (err) {
+        console.log(err);
+        res.sendStatus(500);
+      } else {
+        res.send(result);
+      }
+    },
+  );
+});
 
 router.get("/delegateRail/:id", function (req, res, next) {
   connection.query(
