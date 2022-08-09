@@ -108,6 +108,16 @@ router.get("/filter", function (req, res, next) {
   );
 });
 
+router.get("/itemByCustomer/:customerId/:itemId", function (req, res, next) {
+  connection.query(
+    `SELECT * FROM invoiceContent JOIN invoice ON invoice.idInvoice = invoiceContent.invoiceId WHERE invoice.customerId = ${req.params.customerId} AND invoiceContent.itemId = ${req.params.itemId}`,
+    (err, result) => {
+      res.send(result);
+      console.log(err);
+    },
+  );
+});
+
 router.get("/delivery/:date", function (req, res, next) {
   connection.query(
     "SELECT deliveryId,username AS deliveryName,invoice.createdAt, COUNT(idInvoice) AS totalInvoices,DATE_FORMAT(invoice.createdAt, '%Y-%m-%d') As creationFixedDate, DATE_FORMAT(invoice.createdAt, '%r') As creationFixedTime, DATE_FORMAT(invoice.createdAt, '%W') As creationDayName FROM invoice JOIN user ON user.idUser = invoice.deliveryId WHERE DATE(invoice.createdAt) = ? AND deliveryId > 0  GROUP BY deliveryId",
