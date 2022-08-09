@@ -110,7 +110,7 @@ router.get("/filter", function (req, res, next) {
 
 router.get("/itemByCustomer/:customerId/:itemId", function (req, res, next) {
   connection.query(
-    `SELECT * FROM invoiceContent JOIN invoice ON invoice.idInvoice = invoiceContent.invoiceId WHERE invoice.customerId = ${req.params.customerId} AND invoiceContent.itemId = ${req.params.itemId}`,
+    `SELECT SUM(count) As totalCount FROM invoiceContent JOIN invoice ON invoice.idInvoice = invoiceContent.invoiceId WHERE invoice.customerId = ${req.params.customerId} AND invoiceContent.itemId = ${req.params.itemId}`,
     (err, result) => {
       res.send(result);
       console.log(err);
