@@ -19,14 +19,11 @@ router.get("/", function (req, res, next) {
 
 router.get("/id/:id", function (req, res, next) {
   connection.query(
-    "SELECT * ,(SELECT storeName FROM customer WHERE idCustomer = damagedItemsInvoice.customerId) As customerName,DATE_FORMAT(createdAt, '%Y-%m-%d') As creationFixedDate, DATE_FORMAT(createdAt, '%T') As creationFixedTime, DATE_FORMAT(createdAt, '%W') As creationDayName ,(SELECT GROUP_CONCAT(json_object('itemId',itemId,'count',count,'idDamagedItemsInvoiceContents',idDamagedItemsInvoiceContents,'itemName',(SELECT  IFNULL(CONCAT(itemType , ' ' , itemName,' ' , itemWeight, ' ' ,itemWeightSuffix, ' ' , ' * ' , cartonQauntity , ' ' , brand.brandName), item.itemName)  FROM item LEFT JOIN itemGroup ON item.itemGroupId = itemGroup.idItemGroup LEFT JOIN brand ON item.brandId = brand.idBrand LEFT JOIN itemType ON itemType.idItemType = item.itemTypeId WHERE idItem = damagedItemsInvoiceContents.itemId LIMIT 1), 'price', price, 'totalPrice', totalPrice)) FROM damagedItemsInvoiceContents WHERE damagedItemsInvoiceContents.damagedItemsInvoiceId = damagedItemsInvoice.idDamagedItemsInvoice) As items FROM damagedItemsInvoice WHERE idDamagedItemsInvoice = " +
+    "SELECT * ,(SELECT storeName FROM customer WHERE idCustomer = damagedItemsInvoice.customerId) As customerName,DATE_FORMAT(createdAt, '%Y-%m-%d') As creationFixedDate, DATE_FORMAT(createdAt, '%T') As creationFixedTime, DATE_FORMAT(createdAt, '%W') As creationDayName ,IFNULL((SELECT JSON_ARRAYAGG(json_object('itemId',itemId,'count',count,'idDamagedItemsInvoiceContents',idDamagedItemsInvoiceContents,'itemName',(SELECT  IFNULL(CONCAT(itemType , ' ' , itemName,' ' , itemWeight, ' ' ,itemWeightSuffix, ' ' , ' * ' , cartonQauntity , ' ' , brand.brandName), item.itemName)  FROM item LEFT JOIN itemGroup ON item.itemGroupId = itemGroup.idItemGroup LEFT JOIN brand ON item.brandId = brand.idBrand LEFT JOIN itemType ON itemType.idItemType = item.itemTypeId WHERE idItem = damagedItemsInvoiceContents.itemId LIMIT 1), 'price', price, 'totalPrice', totalPrice)) FROM damagedItemsInvoiceContents WHERE damagedItemsInvoiceContents.damagedItemsInvoiceId = damagedItemsInvoice.idDamagedItemsInvoice),'[]') As items FROM damagedItemsInvoice WHERE idDamagedItemsInvoice = " +
       req.params.id,
     (err, result) => {
       console.log(err);
       if (result.length > 0) {
-        result = result.map(
-          (row) => ((row.items = "[" + row.items + "]"), row),
-        );
         result = result.map(
           (row) => ((row.items = JSON.parse(row.items)), row),
         );
