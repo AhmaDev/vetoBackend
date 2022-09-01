@@ -83,7 +83,7 @@ router.get("/delegateDamagedItems/:id", function (req, res, next) {
 router.get("/delegateRail/:id", function (req, res, next) {
   let sort = "";
   if (req.query.sort != undefined) {
-    sort = "ORDER BY lastInvoice";
+    sort = "ORDER BY lastInvoice DESC";
   }
   connection.query(
     `SELECT *,DATE_FORMAT(customer.createdAt, '%Y-%m-%d %r') As customerCreatedAt, (SELECT IFNULL(SUM(total),0) FROM invoiceContent JOIN invoice ON invoiceContent.invoiceId = invoice.idInvoice WHERE invoice.customerId = customer.idCustomer AND invoice.invoiceTypeId = 1 AND DATE(invoice.createdAt) BETWEEN '${req.query.date1}' AND '${req.query.date2}') AS totalSell, (SELECT IFNULL(SUM(total),0) FROM invoiceContent JOIN invoice ON invoiceContent.invoiceId = invoice.idInvoice WHERE invoice.customerId = customer.idCustomer AND invoice.invoiceTypeId = 3 AND DATE(invoice.createdAt) BETWEEN '${req.query.date1}' AND '${req.query.date2}') AS totalRestore, (SELECT createdAt FROM invoice WHERE invoice.customerId = customer.idCustomer ORDER BY idInvoice DESC LIMIT 1) As lastInvoice, (SELECT IFNULL(COUNT(idInvoice),0) FROM invoice WHERE invoice.customerId = customer.idCustomer AND invoice.invoiceTypeId = 1 AND DATE(invoice.createdAt) BETWEEN '${req.query.date1}' AND '${req.query.date2}') As totalInvoiceCount, (SELECT IFNULL(COUNT(idVisit),0) FROM visit WHERE visit.customerId = customer.idCustomer AND DATE(visit.createdAt) BETWEEN '${req.query.date1}' AND '${req.query.date2}') As visitCount FROM customer JOIN customerClass ON customer.customerClassId = customerClass.idCustomerClass WHERE createdBy = ${req.params.id} ${sort}`,
