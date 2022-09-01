@@ -210,6 +210,39 @@ router.get("/:id", function (req, res, next) {
   );
 });
 
+router.get("/salesByBrand/:id", function (req, res, next) {
+  if (
+    req.query.from == undefined ||
+    req.query.from == null ||
+    req.query.to == undefined ||
+    req.query.to == null
+  ) {
+    var today = new Date();
+    var date1 = "2010-01-01";
+    var date2 =
+      today.getFullYear() +
+      "-" +
+      (today.getMonth() + 1) +
+      "-" +
+      today.getDate();
+  } else {
+    var date1 = req.query.from;
+    var date2 = req.query.to;
+  }
+
+  connection.query(
+    `SELECT brand.idBrand, brand.brandName, invoice.createdBy, IFNULL(SUM(invoiceContent.total),0) FROM invoiceContent JOIN invoice ON invoiceContent.invoiceId = invoice.idInvoice JOIN item ON invoiceContent.itemId = item.idItem JOIN brand ON item.brandId = brand.idBrand WHERE invoice.createdBy = ${req.params.id} AND DATE(invoice.createdAt) BETWEEN '${date1}' AND '${date2}' GROUP BY item.brandId`,
+    (err, result) => {
+      if (err) {
+        console.log(err);
+        res.sendStatus(500);
+      } else {
+        res.send(result);
+      }
+    },
+  );
+});
+
 router.post("/new", upload.single("itemImage"), function (req, res, next) {
   let imagePath = null;
   if (req.file != undefined && req.file.fieldname == "itemImage") {
