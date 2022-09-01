@@ -231,7 +231,7 @@ router.get("/salesByBrand/:id", function (req, res, next) {
   }
 
   connection.query(
-    `SELECT brand.idBrand, brand.brandName, invoice.createdBy, IFNULL(SUM(invoiceContent.total),0) As totalSales FROM invoiceContent JOIN invoice ON invoiceContent.invoiceId = invoice.idInvoice JOIN item ON invoiceContent.itemId = item.idItem JOIN brand ON item.brandId = brand.idBrand WHERE invoice.createdBy = ${req.params.id} AND DATE(invoice.createdAt) BETWEEN '${date1}' AND '${date2}' GROUP BY item.brandId`,
+    `SELECT itemGroup.idItemGroup, itemGroup.itemGroupName, invoice.createdBy, IFNULL(SUM(invoiceContent.total),0) As totalSales FROM invoiceContent JOIN invoice ON invoiceContent.invoiceId = invoice.idInvoice JOIN item ON invoiceContent.itemId = item.idItem JOIN itemGroup ON item.itemGroupId = itemGroup.idItemGroup WHERE invoice.createdBy = ${req.params.id} AND DATE(invoice.createdAt) BETWEEN '${date1}' AND '${date2}' GROUP BY item.itemGroupId`,
     (err, result) => {
       if (err) {
         console.log(err);
