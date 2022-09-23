@@ -36,8 +36,6 @@ router.get("/overview", function (req, res, next) {
     var date1 = req.query.from;
     var date2 = req.query.to;
   }
-  let days = days(date1, date2);
-  console.log(days);
 
   if (req.query.superVisorId != undefined) {
     query = query + " AND @superVisorId = " + req.query.superVisorId;
