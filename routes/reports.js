@@ -37,7 +37,7 @@ router.get("/overview", function (req, res, next) {
     var date2 = req.query.to;
   }
   let days = days(date1, date2);
-  days = JSON.stringify(days).slice(1, -1);
+  console.log(days);
 
   if (req.query.superVisorId != undefined) {
     query = query + " AND @superVisorId = " + req.query.superVisorId;
