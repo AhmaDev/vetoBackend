@@ -5,6 +5,9 @@ var db = require("../config/database");
 var multer = require("multer");
 var connection = mysql.createConnection(db);
 var path = require("path");
+const redis = require("redis");
+const e = require("express");
+
 var storage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, path.join(__dirname, "..", "uploads/"));
@@ -149,6 +152,7 @@ router.get("/store", function (req, res, next) {
 });
 
 router.get("/store/sellPriceId/:sellPriceId", function (req, res, next) {
+  var client = redis.createClient();
   connection.query(
     `SELECT *,IFNULL(CONCAT(itemType , ' ' , itemName,' ' , itemWeight, ' ' ,itemWeightSuffix, ' ' , ' * ' , cartonQauntity , ' ' , brand.brandName), item.itemName) As fullItemName, IFNULL(itemStore.stockIn,0) AS totalPlus, IFNULL(itemStore.stockOut,0) AS totalMinus, IFNULL(itemStore.stock,0) AS store, (SELECT GROUP_CONCAT(json_object('price',price,'sellPriceId',sellPriceId,'sellPriceName',sellPriceName,'delegateTarget',delegateTarget, 'itemDescription', itemDescription , 'damagedItemPrice', damagedItemPrice)) FROM itemPrice JOIN sellPrice ON itemPrice.sellPriceId = sellPrice.idSellPrice WHERE itemPrice.sellPriceId = ${req.params.sellPriceId} AND itemPrice.itemId = item.idItem) As prices , DATEDIFF(CURRENT_DATE(),item.createdAt) As days  FROM item LEFT JOIN itemGroup ON item.itemGroupId = itemGroup.idItemGroup LEFT JOIN brand ON item.brandId = brand.idBrand LEFT JOIN itemType ON itemType.idItemType = item.itemTypeId LEFT JOIN itemStore ON itemStore.itemId = item.idItem`,
     (err, result) => {
@@ -159,6 +163,12 @@ router.get("/store/sellPriceId/:sellPriceId", function (req, res, next) {
         (row) => ((row.prices = JSON.parse(row.prices)), row),
       );
       result = result.filter((item) => item.prices[0] != null);
+      if (result.filter((e) => e.store == 0).length == result.length) {
+        // NO DATA IN DB
+        result = client.hGetAll("items");
+      } else {
+        client.hSet("items", result);
+      }
       res.send(result);
       if (err) {
         console.log(err);
