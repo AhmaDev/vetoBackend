@@ -12,6 +12,10 @@ router.get("/", function (req, res, next) {
 /// NOT FINISHED YET
 
 router.get("/overview", function (req, res, next) {
+  if (req.query.days == null || req.query.days == undefined) {
+    req.query.days =
+      "'sunday','monday','tuesday','wednesday','thursday','friday','saturday'";
+  }
   var query = "";
   if (
     req.query.from == undefined ||
