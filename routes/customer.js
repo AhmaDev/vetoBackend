@@ -165,9 +165,13 @@ router.get("/filter/query", function (req, res, next) {
   if (req.query.isManufacture != undefined) {
     isManufacture = req.query.isManufacture;
   }
+  let totalInvoices = "";
+  if (req.query.totalInvoices != undefined && req.query.user != undefined) {
+    totalInvoices = `, (SELECT COUNT(*) FROM invoice WHERE invoice.createdBy = ${req.query.user} AND invoice.customerId = customer.idCustomer) As totalInvoices`;
+  }
 
   connection.query(
-    `SELECT * FROM customer JOIN sellPrice ON customer.sellPriceId = sellPrice.idSellPrice WHERE isManufacture = ${isManufacture} ${query} ${order} ${limit}`,
+    `SELECT * ${totalInvoices} FROM customer JOIN sellPrice ON customer.sellPriceId = sellPrice.idSellPrice WHERE isManufacture = ${isManufacture} ${query} ${order} ${limit}`,
     (err, result) => {
       res.send(result);
       if (err) {
