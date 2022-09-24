@@ -152,6 +152,9 @@ router.get("/store", function (req, res, next) {
 });
 
 router.get("/store/sellPriceId/:sellPriceId", function (req, res, next) {
+  var client = redis.createClient({
+    legacyMode: true,
+  });
   connection.query(
     `SELECT *,IFNULL(CONCAT(itemType , ' ' , itemName,' ' , itemWeight, ' ' ,itemWeightSuffix, ' ' , ' * ' , cartonQauntity , ' ' , brand.brandName), item.itemName) As fullItemName, IFNULL(itemStore.stockIn,0) AS totalPlus, IFNULL(itemStore.stockOut,0) AS totalMinus, IFNULL(itemStore.stock,0) AS store, (SELECT GROUP_CONCAT(json_object('price',price,'sellPriceId',sellPriceId,'sellPriceName',sellPriceName,'delegateTarget',delegateTarget, 'itemDescription', itemDescription , 'damagedItemPrice', damagedItemPrice)) FROM itemPrice JOIN sellPrice ON itemPrice.sellPriceId = sellPrice.idSellPrice WHERE itemPrice.sellPriceId = ${req.params.sellPriceId} AND itemPrice.itemId = item.idItem) As prices , DATEDIFF(CURRENT_DATE(),item.createdAt) As days  FROM item LEFT JOIN itemGroup ON item.itemGroupId = itemGroup.idItemGroup LEFT JOIN brand ON item.brandId = brand.idBrand LEFT JOIN itemType ON itemType.idItemType = item.itemTypeId LEFT JOIN itemStore ON itemStore.itemId = item.idItem`,
     (err, result) => {
@@ -165,8 +168,17 @@ router.get("/store/sellPriceId/:sellPriceId", function (req, res, next) {
       if (result.filter((e) => e.store == 0).length == result.length) {
         // NO DATA IN DB
         console.log("ITEMS FROM CACHE");
+        client.get("items", (err, data) => {
+          if (err) {
+            console.log(err);
+            res.sendStatus(500);
+          } else {
+            result = data;
+          }
+        });
       } else {
         console.log("ITEMS FROM DATABASE");
+        client.set("items", result);
       }
       res.send(result);
       if (err) {
