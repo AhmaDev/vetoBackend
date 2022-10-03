@@ -2,7 +2,7 @@ var express = require("express");
 var router = express.Router();
 var mysql = require("mysql2");
 var db = require("../config/database");
-var connection = mysql.createConnection(db);
+var connection = mysql.createPool(db);
 
 /* GET invoice listing. */
 router.get("/", function (req, res, next) {
