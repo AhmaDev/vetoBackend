@@ -86,17 +86,26 @@ router.post("/new", function (req, res, next) {
   );
 });
 
-router.post("/multiple", function (req, res, next) {
+router.post("/multiple/:supervisorId", function (req, res, next) {
   connection.query(
-    "INSERT IGNORE INTO supervisorDelegates (supervisorId, delegateId) VALUES ?",
-    [req.body],
-    (err, result) => {
-      if (err) {
-        console.log(err);
-        res.sendStatus(409);
-      } else {
-        res.send(result);
+    `DELETE FROM supervisorDelegates WHERE superVisorId = ${req.params.supervisorId}`,
+    (deleteErr, deleteResult) => {
+      if (deleteErr) {
+        res.sendStatus(500);
+        return;
       }
+      connection.query(
+        "INSERT INTO supervisorDelegates (supervisorId, delegateId) VALUES ?",
+        [req.body],
+        (err, result) => {
+          if (err) {
+            console.log(err);
+            res.sendStatus(409);
+          } else {
+            res.send(result);
+          }
+        },
+      );
     },
   );
 });
