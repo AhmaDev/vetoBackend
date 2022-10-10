@@ -20,6 +20,18 @@ router.get("/", function (req, res, next) {
   );
 });
 
+router.get("/counter", function (req, res, next) {
+  connection.query(
+    "SELECT MAX(counter) As counter FROM deliveryStatus",
+    (err, result) => {
+      res.send(result[0]);
+      if (err) {
+        console.log(err);
+      }
+    },
+  );
+});
+
 router.get("/damagedStatus", function (req, res, next) {
   connection.query(
     "SELECT *,DATE_FORMAT(createdAt, '%Y-%m-%d') As creationFixedDate, DATE_FORMAT(createdAt, '%W') As creationDayName, (SELECT username FROM user WHERE idUser = damagedStatus.deliveryId) As deliveryName FROM damagedStatus ORDER BY createdAt DESC",
