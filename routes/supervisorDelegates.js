@@ -88,7 +88,7 @@ router.post("/new", function (req, res, next) {
 
 router.post("/multiple", function (req, res, next) {
   connection.query(
-    "INSERT INTO supervisorDelegates (supervisorId, delegateId) VALUES ?",
+    "INSERT IGNORE INTO supervisorDelegates (supervisorId, delegateId) VALUES ?",
     [req.body],
     (err, result) => {
       if (err) {
