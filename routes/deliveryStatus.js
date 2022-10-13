@@ -328,9 +328,7 @@ router.post("/multipleInvoices/:delegateId", function (req, res, next) {
                     "INSERT INTO deliveryStatus SET ?",
                     {
                       deliveryId: req.body.delivery,
-                      delegates: JSON.stringify(
-                        deliveriesResult.map((e) => e.delegateId),
-                      ),
+                      delegates: JSON.stringify([delegatesIds]),
                       invoicesData: JSON.stringify(result),
                       createdAt: req.body.date,
                       invoices: JSON.stringify(
