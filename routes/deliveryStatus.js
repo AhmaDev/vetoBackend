@@ -340,6 +340,7 @@ router.post("/multipleInvoices/:delegateId", function (req, res, next) {
                     },
                     (err3, result3) => {
                       console.log(err3, result3);
+                      res.sendStatus(200);
                     },
                   );
                 }
