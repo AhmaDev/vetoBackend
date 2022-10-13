@@ -323,6 +323,7 @@ router.post("/multipleInvoices/:delegateId", function (req, res, next) {
             connection.query(
               `SELECT counter As totalCount FROM deliveryStatus WHERE deliveryStatusType = ${req.body.deliveryStatusType} ORDER BY counter DESC LIMIT 1`,
               (errCount, resultCount) => {
+                console.log(errCount);
                 if (!errCount) {
                   connection.query(
                     "INSERT INTO deliveryStatus SET ?",
