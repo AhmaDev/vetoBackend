@@ -308,6 +308,51 @@ router.post("/damagedMultipleInsert", function (req, res, next) {
   }
 });
 
+router.post("/multipleInvoices/:delegateId", function (req, res, next) {
+  console.log(deliveriesErr);
+  var delegatesIds = req.params.delegateId;
+  connection.query(
+    `SELECT invoiceContent.itemId, SUM(count) As count, SUM(total) As total, invoiceContent.discountTypeId, invoice.createdBy, invoice.sellPriceId, invoice.invoiceTypeId , (SELECT itemName FROM item WHERE idItem = invoiceContent.itemId) As itemName FROM invoiceContent JOIN invoice ON invoiceContent.invoiceId = invoice.idInvoice WHERE invoice.invoiceTypeId = 1 AND invoice.createdBy IN (${delegatesIds}) AND DATE(invoice.createdAt) = '${req.body.date}' AND invoiceContent.count != 0 GROUP BY invoiceContent.itemId, invoiceContent.discountTypeId ORDER BY invoiceContent.itemId , invoiceContent.discountTypeId`,
+    (err, result) => {
+      console.log(err);
+      connection.query(
+        `SELECT * FROM invoice WHERE invoiceTypeId = 1 AND createdBy IN (${delegatesIds}) AND DATE(invoice.createdAt) = '${req.body.date}'`,
+        (errInvoices, resultInvoices) => {
+          console.log(errInvoices);
+          if (result.length > 0) {
+            connection.query(
+              `SELECT counter As totalCount FROM deliveryStatus WHERE deliveryStatusType = ${req.body.deliveryStatusType} ORDER BY counter DESC LIMIT 1`,
+              (errCount, resultCount) => {
+                if (!errCount) {
+                  connection.query(
+                    "INSERT INTO deliveryStatus SET ?",
+                    {
+                      deliveryId: req.body.delivery,
+                      delegates: JSON.stringify(
+                        deliveriesResult.map((e) => e.delegateId),
+                      ),
+                      invoicesData: JSON.stringify(result),
+                      createdAt: req.body.date,
+                      invoices: JSON.stringify(
+                        resultInvoices.map((e) => e.idInvoice),
+                      ),
+                      notice: "none",
+                      deliveryStatusType: req.body.deliveryStatusType,
+                      counter: resultCount[0].totalCount + 1,
+                    },
+                    (err3, result3) => {
+                      console.log(err3, result3);
+                    },
+                  );
+                }
+              },
+            );
+          }
+        },
+      );
+    },
+  );
+});
 router.get("/:id", function (req, res, next) {
   connection.query(
     "SELECT *,DATE_FORMAT(createdAt, '%Y-%m-%d') As creationFixedDate, DATE_FORMAT(createdAt, '%W') As creationDayName,  (SELECT username FROM user WHERE idUser = deliveryStatus.deliveryId) As deliveryName FROM deliveryStatus WHERE idDeliveryStatus = ?",
