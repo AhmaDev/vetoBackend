@@ -334,7 +334,7 @@ router.post("/multipleInvoices/:delegateId", function (req, res, next) {
                       invoices: JSON.stringify(
                         resultInvoices.map((e) => e.idInvoice),
                       ),
-                      notice: "none",
+                      notice: "delegateInvoices",
                       deliveryStatusType: req.body.deliveryStatusType,
                       counter: resultCount[0].totalCount + 1,
                     },
