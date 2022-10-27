@@ -113,9 +113,11 @@ router.get("/user/:id", function (req, res, next) {
     },
   );
 });
+
+/**(SELECT COUNT(*) FROM invoice WHERE invoice.createdBy = ? AND invoice.customerId = customer.idCustomer) */
 router.get("/userWithInvoicesCount/:id", function (req, res, next) {
   connection.query(
-    "SELECT *, (SELECT COUNT(*) FROM invoice WHERE invoice.createdBy = ? AND invoice.customerId = customer.idCustomer) As idSellPrice FROM customer JOIN sellPrice ON customer.sellPriceId = sellPrice.idSellPrice WHERE createdBy = ? AND isManufacture = 0",
+    "SELECT *, 100 As idSellPrice FROM customer JOIN sellPrice ON customer.sellPriceId = sellPrice.idSellPrice WHERE createdBy = ? AND isManufacture = 0",
     [req.params.id, req.params.id],
     (err, result) => {
       res.send(result);
