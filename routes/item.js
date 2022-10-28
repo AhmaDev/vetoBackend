@@ -425,6 +425,18 @@ router.delete("/offer/:id", function (req, res, next) {
   );
 });
 
+router.delete("/hide/delete/:id", function (req, res, next) {
+  connection.query(
+    `DELETE FROM itemHide WHERE idItemHide = ${req.params["id"]}`,
+    (err, result) => {
+      res.send(result);
+      if (err) {
+        console.log(err);
+      }
+    },
+  );
+});
+
 router.delete("/delete/:id", function (req, res, next) {
   connection.query(
     `DELETE FROM item WHERE idItem = ${req.params["id"]}`,
