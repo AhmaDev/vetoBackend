@@ -79,6 +79,20 @@ router.get("/hide/:id", function (req, res, next) {
     },
   );
 });
+router.get("/hide/user/:id", function (req, res, next) {
+  connection.query(
+    "SELECT * FROM itemHide WHERE userId = ?",
+    [req.params.id],
+    (err, result) => {
+      if (err) {
+        console.log(err);
+        res.sendStatus(404);
+      } else {
+        res.send(result);
+      }
+    },
+  );
+});
 
 router.get("/offers", function (req, res, next) {
   connection.query("SELECT * FROM itemOffer", (err, result) => {
