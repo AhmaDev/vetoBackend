@@ -65,6 +65,21 @@ router.get("/offer/:id", function (req, res, next) {
   );
 });
 
+router.get("/hide/:id", function (req, res, next) {
+  connection.query(
+    "SELECT * FROM itemHide WHERE itemId = ?",
+    [req.params.id],
+    (err, result) => {
+      if (err) {
+        console.log(err);
+        res.sendStatus(404);
+      } else {
+        res.send(result);
+      }
+    },
+  );
+});
+
 router.get("/offers", function (req, res, next) {
   connection.query("SELECT * FROM itemOffer", (err, result) => {
     res.send(result);
@@ -346,6 +361,16 @@ router.post("/itemPrice/new", function (req, res, next) {
 
 router.post("/offer", function (req, res, next) {
   connection.query(`INSERT INTO itemOffer SET ?`, [req.body], (err, result) => {
+    if (err) {
+      res.sendStatus(409);
+    } else {
+      res.send(result);
+    }
+  });
+});
+
+router.post("/hide", function (req, res, next) {
+  connection.query(`INSERT INTO itemHide SET ?`, [req.body], (err, result) => {
     if (err) {
       res.sendStatus(409);
     } else {
