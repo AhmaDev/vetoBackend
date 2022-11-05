@@ -128,6 +128,19 @@ router.get("/userWithInvoicesCount/:id", function (req, res, next) {
   );
 });
 
+router.get("/userWithInvoicesCount2/:id", function (req, res, next) {
+  connection.query(
+    "SELECT *, (SELECT COUNT(*) FROM invoice WHERE invoice.createdBy = ? AND invoice.customerId = customer.idCustomer) As idSellPrice FROM customer JOIN sellPrice ON customer.sellPriceId = sellPrice.idSellPrice WHERE createdBy = ? AND isManufacture = 0",
+    [req.params.id, req.params.id],
+    (err, result) => {
+      res.send(result);
+      if (err) {
+        console.log(err);
+      }
+    },
+  );
+});
+
 router.get("/filter/query", function (req, res, next) {
   let query = "";
   let order = "";
