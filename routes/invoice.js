@@ -342,24 +342,37 @@ function updateStock() {
   connection.query(
     `SELECT * FROM INFORMATION_SCHEMA.PROCESSLIST WHERE INFO = "SELECT item.idItem, (SELECT @totalPlus := IFNULL(SUM(count), 0) FROM invoiceContent JOIN invoice ON invoiceContent.invoiceId = invoice.idInvoice JOIN invoiceType ON invoice.invoiceTypeId = invoiceType.idInvoiceType WHERE invoiceContent.itemId = item.idItem AND invoiceType.invoiceFunction = 'plus') AS totalPlus, (SELECT @totalMinus := IFNULL(SUM(count), 0) FROM invoiceContent JOIN invoice ON invoiceContent.invoiceId = invoice.idInvoice JOIN invoiceType ON invoice.invoiceTypeId = invoiceType.idInvoiceType WHERE invoiceContent.itemId = item.idItem AND invoiceType.invoiceFunction = 'minus') AS totalMinus, (@totalPlus - @totalMinus) AS store FROM item"`,
     (errProc, resProc) => {
-      console.log("PROCESSES: " + resProc.length);
+      if (resProc.length < 1) {
+        let query = `SELECT item.idItem, (SELECT @totalPlus := IFNULL(SUM(count), 0) FROM invoiceContent JOIN invoice ON invoiceContent.invoiceId = invoice.idInvoice JOIN invoiceType ON invoice.invoiceTypeId = invoiceType.idInvoiceType WHERE invoiceContent.itemId = item.idItem AND invoiceType.invoiceFunction = 'plus') AS totalPlus, (SELECT @totalMinus := IFNULL(SUM(count), 0) FROM invoiceContent JOIN invoice ON invoiceContent.invoiceId = invoice.idInvoice JOIN invoiceType ON invoice.invoiceTypeId = invoiceType.idInvoiceType WHERE invoiceContent.itemId = item.idItem AND invoiceType.invoiceFunction = 'minus') AS totalMinus, (@totalPlus - @totalMinus) AS store FROM item`;
+        connection.query(query, (err, result) => {
+          connection.query(
+            `DELETE FROM itemStore`,
+            (errDelete, resultDelete) => {
+              connection.query(
+                `INSERT INTO itemStore (itemId,stockIn,stockOut,stock) VALUES ?`,
+                [
+                  result.map((e) => [
+                    e.idItem,
+                    e.totalPlus,
+                    e.totalMinus,
+                    e.store,
+                  ]),
+                ],
+                (errInsert, resultInsert) => {
+                  if (errInsert) {
+                    console.log(`ERROR UPDATING THE STORE:`, errInsert);
+                  } else {
+                    console.log("STORE UPDATED !!!");
+                  }
+                },
+              );
+            },
+          );
+        });
+      } else {
+        console.log("PROCESS IN QUEUE");
+      }
     },
   );
-  let query = `SELECT item.idItem, (SELECT @totalPlus := IFNULL(SUM(count), 0) FROM invoiceContent JOIN invoice ON invoiceContent.invoiceId = invoice.idInvoice JOIN invoiceType ON invoice.invoiceTypeId = invoiceType.idInvoiceType WHERE invoiceContent.itemId = item.idItem AND invoiceType.invoiceFunction = 'plus') AS totalPlus, (SELECT @totalMinus := IFNULL(SUM(count), 0) FROM invoiceContent JOIN invoice ON invoiceContent.invoiceId = invoice.idInvoice JOIN invoiceType ON invoice.invoiceTypeId = invoiceType.idInvoiceType WHERE invoiceContent.itemId = item.idItem AND invoiceType.invoiceFunction = 'minus') AS totalMinus, (@totalPlus - @totalMinus) AS store FROM item`;
-  connection.query(query, (err, result) => {
-    connection.query(`DELETE FROM itemStore`, (errDelete, resultDelete) => {
-      connection.query(
-        `INSERT INTO itemStore (itemId,stockIn,stockOut,stock) VALUES ?`,
-        [result.map((e) => [e.idItem, e.totalPlus, e.totalMinus, e.store])],
-        (errInsert, resultInsert) => {
-          if (errInsert) {
-            console.log(`ERROR UPDATING THE STORE:`, errInsert);
-          } else {
-            console.log("STORE UPDATED !!!");
-          }
-        },
-      );
-    });
-  });
 }
 module.exports = router;
