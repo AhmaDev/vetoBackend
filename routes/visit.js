@@ -6,22 +6,21 @@ var connection = mysql.createConnection(db);
 
 /* GET customer listing. */
 
-let query = "";
-
-if (req.query.id != undefined) {
-  query = query + ` AND idVisit = ${req.query.id}`;
-}
-
-if (
-  req.query.dateRangeFrom != undefined &&
-  req.query.dateRangeTo != undefined
-) {
-  query =
-    query +
-    ` AND DATE(visit.createdAt) BETWEEN '${req.query.dateRangeFrom}' AND '${req.query.dateRangeTo}'`;
-}
-
 router.get("/", function (req, res, next) {
+  let query = "";
+
+  if (req.query.id != undefined) {
+    query = query + ` AND idVisit = ${req.query.id}`;
+  }
+
+  if (
+    req.query.dateRangeFrom != undefined &&
+    req.query.dateRangeTo != undefined
+  ) {
+    query =
+      query +
+      ` AND DATE(visit.createdAt) BETWEEN '${req.query.dateRangeFrom}' AND '${req.query.dateRangeTo}'`;
+  }
   connection.query(
     "SELECT *, DATE_FORMAT(visit.createdAt, '%Y-%m-%d %r') As creationFixedDate FROM visit JOIN user ON visit.createdBy = user.idUser JOIN customer ON customer.idCustomer = visit.customerId JOIN visitCause ON visitCause.idVisitCause = visit.visitCauseId  WHERE 1=1 ${query}",
     (err, result) => {
