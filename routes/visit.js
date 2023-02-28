@@ -12,6 +12,12 @@ router.get("/", function (req, res, next) {
   if (req.query.id != undefined) {
     query = query + ` AND idVisit = ${req.query.id}`;
   }
+  if (req.query.visitCauseId != undefined) {
+    query = query + ` AND visitCauseId = ${req.query.visitCauseId}`;
+  }
+  if (req.query.id != undefined) {
+    query = query + ` AND idVisit = ${req.query.id}`;
+  }
 
   if (
     req.query.dateRangeFrom != undefined &&
