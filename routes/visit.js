@@ -22,7 +22,7 @@ router.get("/", function (req, res, next) {
       ` AND DATE(visit.createdAt) BETWEEN '${req.query.dateRangeFrom}' AND '${req.query.dateRangeTo}'`;
   }
   connection.query(
-    `SELECT *, DATE_FORMAT(visit.createdAt, '%Y-%m-%d %r') As creationFixedDate FROM visit JOIN user ON visit.createdBy = user.idUser JOIN customer ON customer.idCustomer = visit.customerId JOIN visitCause ON visitCause.idVisitCause = visit.visitCauseId  WHERE 1=1 ${query}`,
+    `SELECT *, DATE_FORMAT(visit.createdAt, '%Y-%m-%d %r') As creationFixedDate FROM visit JOIN user ON visit.createdBy = user.idUser JOIN customer ON customer.idCustomer = visit.customerId JOIN visitCause ON visitCause.idVisitCause = visit.visitCauseId  WHERE 1=1 ${query} ORDER BY visit.createdAt ASC`,
     (err, result) => {
       res.send(result);
       if (err) {
