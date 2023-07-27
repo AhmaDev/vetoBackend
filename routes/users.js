@@ -31,7 +31,7 @@ router.get("/", function (req, res, next) {
 
 router.get("/unsecure/all", function (req, res, next) {
   connection.query(
-    "SELECT * FROM user JOIN role ON user.roleId = role.idRole",
+    "SELECT * FROM user JOIN role ON user.roleId = role.idRole LEFT JOIN userInfo ON userInfo.userId = user.idUser",
     (err, result) => {
       res.send(result);
       if (err) {
