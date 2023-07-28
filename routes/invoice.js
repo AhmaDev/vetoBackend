@@ -193,6 +193,7 @@ router.post("/addItemToInvoice", function (req, res, next) {
     "INSERT INTO invoiceContent SET ?",
     [req.body],
     (err, result) => {
+      console.log(err);
       res.send(result);
       updateStock();
     },
