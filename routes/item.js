@@ -152,15 +152,15 @@ router.get("/detailedStoreByUser/:userId", function (req, res, next) {
     var date1 = req.query.from;
     var date2 = req.query.to;
   }
-  connection.query(
-    `SELECT idItem,(SELECT customerName FROM customer WHERE idCustomer = item.manufactureId) As manufactureName , (SELECT itemGroupName FROM itemGroup WHERE idItemGroup = item.itemGroupId) As itemGroupName ,imagePath, IFNULL(CONCAT(itemType , ' ' , itemName,' ' , itemWeight, ' ' ,itemWeightSuffix, ' ' , ' * ' , cartonQauntity , ' ' , brand.brandName), item.itemName) As fullItemName , (SELECT IFNULL(SUM(count),0) FROM invoiceContent JOIN invoice ON invoiceContent.invoiceId = invoice.idInvoice WHERE DATE(invoice.createdAt) BETWEEN '${date1}' AND '${date2}' AND invoiceContent.itemId = item.idItem AND invoice.invoiceTypeId = 1 AND invoice.createdBy IN (${req.params.userId})) As totalSell, (SELECT IFNULL(SUM(total),0) FROM invoiceContent JOIN invoice ON invoiceContent.invoiceId = invoice.idInvoice WHERE DATE(invoice.createdAt) BETWEEN '${date1}' AND '${date2}' AND invoiceContent.itemId = item.idItem AND invoice.invoiceTypeId = 1 AND invoice.createdBy IN (${req.params.userId})) As totalSellPrice, (SELECT IFNULL(SUM(damagedItemsInvoiceContents.count / item.cartonQauntity),0) FROM damagedItemsInvoiceContents JOIN damagedItemsInvoice ON damagedItemsInvoice.idDamagedItemsInvoice = damagedItemsInvoiceContents.damagedItemsInvoiceId WHERE damagedItemsInvoiceContents.itemId = item.idItem AND DATE(damagedItemsInvoiceContents.createdAt) BETWEEN '${date1}' AND '${date2}' AND damagedItemsInvoice.createdBy IN (${req.params.userId})) As totalDamaged, (SELECT IFNULL(SUM(damagedItemsInvoiceContents.totalPrice),0) FROM damagedItemsInvoiceContents JOIN damagedItemsInvoice ON damagedItemsInvoice.idDamagedItemsInvoice = damagedItemsInvoiceContents.damagedItemsInvoiceId WHERE damagedItemsInvoiceContents.itemId = item.idItem AND DATE(damagedItemsInvoiceContents.createdAt) BETWEEN '${date1}' AND '${date2}' AND damagedItemsInvoice.createdBy IN (${req.params.userId})) As totalDamagedPrice FROM item LEFT JOIN itemGroup ON item.itemGroupId = itemGroup.idItemGroup LEFT JOIN brand ON item.brandId = brand.idBrand LEFT JOIN itemType ON itemType.idItemType = item.itemTypeId`,
-    (err, result) => {
-      res.send(result);
-      if (err) {
-        console.log(err);
-      }
-    },
-  );
+
+  let query = `SELECT idItem,(SELECT customerName FROM customer WHERE idCustomer = item.manufactureId) As manufactureName , (SELECT itemGroupName FROM itemGroup WHERE idItemGroup = item.itemGroupId) As itemGroupName ,imagePath, IFNULL(CONCAT(itemType , ' ' , itemName,' ' , itemWeight, ' ' ,itemWeightSuffix, ' ' , ' * ' , cartonQauntity , ' ' , brand.brandName), item.itemName) As fullItemName , (SELECT IFNULL(SUM(count),0) FROM invoiceContent JOIN invoice ON invoiceContent.invoiceId = invoice.idInvoice WHERE invoice.createdAt BETWEEN '${date1} 00:00:00' AND '${date2} 23:59:59' AND invoiceContent.itemId = item.idItem AND invoice.invoiceTypeId = 1 AND invoice.createdBy IN (${req.params.userId})) As totalSell, (SELECT IFNULL(SUM(total),0) FROM invoiceContent JOIN invoice ON invoiceContent.invoiceId = invoice.idInvoice WHERE invoice.createdAt BETWEEN '${date1} 00:00:00' AND '${date2} 23:59:59' AND invoiceContent.itemId = item.idItem AND invoice.invoiceTypeId = 1 AND invoice.createdBy IN (${req.params.userId})) As totalSellPrice, (SELECT IFNULL(SUM(damagedItemsInvoiceContents.count / item.cartonQauntity),0) FROM damagedItemsInvoiceContents JOIN damagedItemsInvoice ON damagedItemsInvoice.idDamagedItemsInvoice = damagedItemsInvoiceContents.damagedItemsInvoiceId WHERE damagedItemsInvoiceContents.itemId = item.idItem AND damagedItemsInvoiceContents.createdAt BETWEEN '${date1} 00:00:00' AND '${date2} 23:59:59' AND damagedItemsInvoice.createdBy IN (${req.params.userId})) As totalDamaged, (SELECT IFNULL(SUM(damagedItemsInvoiceContents.totalPrice),0) FROM damagedItemsInvoiceContents JOIN damagedItemsInvoice ON damagedItemsInvoice.idDamagedItemsInvoice = damagedItemsInvoiceContents.damagedItemsInvoiceId WHERE damagedItemsInvoiceContents.itemId = item.idItem AND damagedItemsInvoiceContents.createdAt BETWEEN '${date1} 00:00:00' AND '${date2} 23:59:59' AND damagedItemsInvoice.createdBy IN (${req.params.userId})) As totalDamagedPrice FROM item LEFT JOIN itemGroup ON item.itemGroupId = itemGroup.idItemGroup LEFT JOIN brand ON item.brandId = brand.idBrand LEFT JOIN itemType ON itemType.idItemType = item.itemTypeId`;
+
+  connection.query(`${query}`, (err, result) => {
+    res.send(result);
+    if (err) {
+      console.log(err);
+    }
+  });
 });
 
 router.get("/store", function (req, res, next) {
