@@ -71,8 +71,7 @@ app.use(function (req, res, next) {
 });
 
 app.use("/clients", (req, res) => {
-  console.log(io.sockets.sockets);
-  var clients = Object.keys(io.sockets.sockets);
+  var clients = io.sockets.sockets;
   res.send(clients);
 });
 
