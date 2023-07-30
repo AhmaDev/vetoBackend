@@ -35,6 +35,7 @@ var brand = require("./routes/brand");
 var log = require("./routes/log");
 
 var app = express();
+let onlineUsers = [];
 
 var server = http.createServer(app);
 const io = require("socket.io")(server, {
@@ -48,10 +49,19 @@ const io = require("socket.io")(server, {
 io.on("connection", function (socket) {
   var user = JSON.parse(socket.handshake.query.userInfo);
   console.log(`${user.username} is connected: ${socket.id}`);
+
+  if (!onlineUsers.some((e) => e.idUser === user.idUser)) {
+    onlineUsers.push({ idUser: user.idUser, socketId: socket.id });
+  }
+
   socket.join(`USER_${user.idUser}`);
   socket.on("logout", (data) => {
     io.to(`USER_${data.userId}`).emit("logoutEmit", "HI");
   });
+});
+
+io.on("disconnect", (socket) => {
+  onlineUsers = onlineUsers.filter((user) => user.socketId !== socket.id);
 });
 
 // view engine setup
@@ -71,10 +81,7 @@ app.use(function (req, res, next) {
 });
 
 app.use("/clients", (req, res) => {
-  io.fetchSockets().then((sockets) => {
-    console.log(sockets);
-    res.send("ok");
-  });
+  res.send(onlineUsers);
 });
 
 app.use("/", indexRouter);
