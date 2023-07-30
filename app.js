@@ -70,9 +70,11 @@ app.use(function (req, res, next) {
   next();
 });
 
-app.use("/clients", async (req, res) => {
-  const sockets = await io.fetchSockets();
-  res.send(sockets);
+app.use("/clients", (req, res) => {
+  io.fetchSockets().then((sockets) => {
+    console.log(sockets);
+    res.send("ok");
+  });
 });
 
 app.use("/", indexRouter);
