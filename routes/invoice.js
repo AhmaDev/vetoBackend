@@ -49,15 +49,19 @@ router.get("/invoiceContent", function (req, res, next) {
     },
   );
 });
-router.get("/allInvoiceContent", compression(), function (req, res, next) {
-  connection.query(
-    `SELECT * FROM invoiceContent JOIN invoice ON invoice.idInvoice = invoiceContent.invoiceId`,
-    (err, result) => {
-      res.send(result);
-      console.log(err);
-    },
-  );
-});
+router.get(
+  "/allInvoiceContent",
+  compression({ level: 9 }),
+  function (req, res, next) {
+    connection.query(
+      `SELECT * FROM invoiceContent JOIN invoice ON invoice.idInvoice = invoiceContent.invoiceId`,
+      (err, result) => {
+        res.send(result);
+        console.log(err);
+      },
+    );
+  },
+);
 
 router.post("/multiple", function (req, res, next) {
   connection.query(
