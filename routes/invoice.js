@@ -3,6 +3,7 @@ var router = express.Router();
 var mysql = require("mysql2");
 var db = require("../config/database");
 var connection = mysql.createPool(db);
+var compression = require("compression");
 
 /* GET invoice listing. */
 router.get("/", function (req, res, next) {
@@ -48,7 +49,7 @@ router.get("/invoiceContent", function (req, res, next) {
     },
   );
 });
-router.get("/allInvoiceContent", function (req, res, next) {
+router.get("/allInvoiceContent", compression(), function (req, res, next) {
   connection.query(
     `SELECT * FROM invoiceContent JOIN invoice ON invoice.idInvoice = invoiceContent.invoiceId`,
     (err, result) => {
