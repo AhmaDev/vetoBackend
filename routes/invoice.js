@@ -48,6 +48,15 @@ router.get("/invoiceContent", function (req, res, next) {
     },
   );
 });
+router.get("/allInvoiceContent", function (req, res, next) {
+  connection.query(
+    `SELECT * FROM invoiceContent JOIN invoice ON invoice.idInvoice = invoiceContent.invoiceId`,
+    (err, result) => {
+      res.send(result);
+      console.log(err);
+    },
+  );
+});
 
 router.post("/multiple", function (req, res, next) {
   connection.query(
