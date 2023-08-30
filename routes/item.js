@@ -134,6 +134,39 @@ router.get("/detailedStore", function (req, res, next) {
     },
   );
 });
+router.get(
+  "/compressedDetailedStore",
+  compression({ level: 9 }),
+  function (req, res, next) {
+    if (
+      req.query.from == undefined ||
+      req.query.from == null ||
+      req.query.to == undefined ||
+      req.query.to == null
+    ) {
+      var today = new Date();
+      var date1 = "2010-01-01";
+      var date2 =
+        today.getFullYear() +
+        "-" +
+        (today.getMonth() + 1) +
+        "-" +
+        today.getDate();
+    } else {
+      var date1 = req.query.from;
+      var date2 = req.query.to;
+    }
+    connection.query(
+      `SELECT idItem,(SELECT customerName FROM customer WHERE idCustomer = item.manufactureId) As manufactureName , (SELECT itemGroupName FROM itemGroup WHERE idItemGroup = item.itemGroupId) As itemGroupName ,imagePath, IFNULL(CONCAT(itemType , ' ' , itemName,' ' , itemWeight, ' ' ,itemWeightSuffix, ' ' , ' * ' , cartonQauntity , ' ' , brand.brandName), item.itemName) As fullItemName , (SELECT IFNULL(SUM(count),0) FROM invoiceContent JOIN invoice ON invoiceContent.invoiceId = invoice.idInvoice WHERE invoice.createdAt BETWEEN '${date1} 00:00:00' AND '${date2} 23:59:59' AND invoiceContent.itemId = item.idItem AND invoice.invoiceTypeId = 1) As totalSell, (SELECT IFNULL(SUM(count),0) FROM invoiceContent JOIN invoice ON invoiceContent.invoiceId = invoice.idInvoice WHERE invoice.createdAt BETWEEN '${date1} 00:00:00' AND '${date2} 23:59:59' AND invoiceContent.itemId = item.idItem AND invoice.invoiceTypeId = 2) As totalBuy, (SELECT IFNULL(SUM(count),0) FROM invoiceContent JOIN invoice ON invoiceContent.invoiceId = invoice.idInvoice WHERE invoice.createdAt BETWEEN '${date1} 00:00:00' AND '${date2} 23:59:59' AND invoiceContent.itemId = item.idItem AND invoice.invoiceTypeId = 3) As totalRestores, (SELECT IFNULL(SUM(count),0) FROM invoiceContent JOIN invoice ON invoiceContent.invoiceId = invoice.idInvoice WHERE invoice.createdAt BETWEEN '${date1} 00:00:00' AND '${date2} 23:59:59' AND invoiceContent.itemId = item.idItem AND invoice.invoiceTypeId = 4) As totalBuyRestores, (SELECT IFNULL(SUM(count),0) FROM invoiceContent JOIN invoice ON invoiceContent.invoiceId = invoice.idInvoice WHERE invoice.createdAt BETWEEN '${date1} 00:00:00' AND '${date2} 23:59:59' AND invoiceContent.itemId = item.idItem AND invoice.invoiceTypeId = 5) As totalTempBuy, (SELECT IFNULL(SUM(damagedItemsInvoiceContents.count / item.cartonQauntity),0) FROM damagedItemsInvoiceContents WHERE damagedItemsInvoiceContents.itemId = item.idItem AND damagedItemsInvoiceContents.createdAt BETWEEN '${date1} 00:00:00' AND '${date2} 23:59:59') As totalDamaged , itemStore.* FROM item LEFT JOIN itemGroup ON item.itemGroupId = itemGroup.idItemGroup LEFT JOIN brand ON item.brandId = brand.idBrand LEFT JOIN itemType ON itemType.idItemType = item.itemTypeId LEFT JOIN itemStore ON itemStore.itemId = item.idItem`,
+      (err, result) => {
+        res.send(result);
+        if (err) {
+          console.log(err);
+        }
+      },
+    );
+  },
+);
 
 router.get("/detailedStoreByUser/:userId", function (req, res, next) {
   if (
