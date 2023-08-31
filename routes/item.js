@@ -145,7 +145,12 @@ router.get(
       req.query.to == null
     ) {
       var today = new Date();
-      var date1 = "2010-01-01";
+      var date1 =
+        today.getFullYear() +
+        "-" +
+        (today.getMonth() + 1) +
+        "-" +
+        today.getDate();
       var date2 =
         today.getFullYear() +
         "-" +
@@ -157,19 +162,14 @@ router.get(
       var date2 = req.query.to;
     }
     connection.query(
-      `SELECT idItem,(SELECT customerName FROM customer WHERE idCustomer = item.manufactureId) As manufactureName , 
-      (SELECT itemGroupName FROM itemGroup WHERE idItemGroup = item.itemGroupId) As itemGroupName ,
-      imagePath, 
-      IFNULL(CONCAT(itemType , ' ' , itemName,' ' , itemWeight, ' ' ,itemWeightSuffix, ' ' , ' * ' , cartonQauntity , ' ' , brand.brandName), item.itemName) As fullItemName , 
+      `SELECT idItem ,  
       (SELECT JSON_OBJECT(
           'sell',IFNULL(SUM(CASE WHEN invoice.invoiceTypeId = 1 THEN count ELSE 0 END),0),
           'buy',IFNULL(SUM(CASE WHEN invoice.invoiceTypeId = 2 THEN count ELSE 0 END),0),
           'restore',IFNULL(SUM(CASE WHEN invoice.invoiceTypeId = 3 THEN count ELSE 0 END),0),
           'buyRestore',IFNULL(SUM(CASE WHEN invoice.invoiceTypeId = 4 THEN count ELSE 0 END),0),
           'tempBuy',IFNULL(SUM(CASE WHEN invoice.invoiceTypeId = 5 THEN count ELSE 0 END),0)
-      ) FROM invoiceContent JOIN invoice ON invoiceContent.invoiceId = invoice.idInvoice WHERE invoice.createdAt BETWEEN '${date1} 00:00:00' AND '${date2} 23:59:59' AND invoiceContent.itemId = item.idItem) As totalSell, 
-      (SELECT IFNULL(SUM(damagedItemsInvoiceContents.count / item.cartonQauntity),0) FROM damagedItemsInvoiceContents WHERE damagedItemsInvoiceContents.itemId = item.idItem AND damagedItemsInvoiceContents.createdAt BETWEEN '${date1} 00:00:00' AND '${date2} 23:59:59') As totalDamaged , 
-      itemStore.* FROM item LEFT JOIN itemGroup ON item.itemGroupId = itemGroup.idItemGroup LEFT JOIN brand ON item.brandId = brand.idBrand LEFT JOIN itemType ON itemType.idItemType = item.itemTypeId LEFT JOIN itemStore ON itemStore.itemId = item.idItem WHERE item.isAvailable = 1`,
+      ) FROM invoiceContent JOIN invoice ON invoiceContent.invoiceId = invoice.idInvoice WHERE invoice.createdAt BETWEEN '${date1} 00:00:00' AND '${date2} 23:59:59' AND invoiceContent.itemId = item.idItem) As stocks FROM item WHERE item.isAvailable = 1`,
       (err, result) => {
         res.send(result);
         if (err) {
