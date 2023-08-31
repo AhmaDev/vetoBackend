@@ -134,35 +134,32 @@ router.get("/detailedStore", function (req, res, next) {
     },
   );
 });
-router.get(
-  "/compressedDetailedStore",
-  compression({ level: 9 }),
-  function (req, res, next) {
-    if (
-      req.query.from == undefined ||
-      req.query.from == null ||
-      req.query.to == undefined ||
-      req.query.to == null
-    ) {
-      var today = new Date();
-      var date1 =
-        today.getFullYear() +
-        "-" +
-        (today.getMonth() + 1) +
-        "-" +
-        today.getDate();
-      var date2 =
-        today.getFullYear() +
-        "-" +
-        (today.getMonth() + 1) +
-        "-" +
-        today.getDate();
-    } else {
-      var date1 = req.query.from;
-      var date2 = req.query.to;
-    }
-    connection.query(
-      `SELECT idItem ,  
+router.get("/compressedDetailedStore", function (req, res, next) {
+  if (
+    req.query.from == undefined ||
+    req.query.from == null ||
+    req.query.to == undefined ||
+    req.query.to == null
+  ) {
+    var today = new Date();
+    var date1 =
+      today.getFullYear() +
+      "-" +
+      (today.getMonth() + 1) +
+      "-" +
+      today.getDate();
+    var date2 =
+      today.getFullYear() +
+      "-" +
+      (today.getMonth() + 1) +
+      "-" +
+      today.getDate();
+  } else {
+    var date1 = req.query.from;
+    var date2 = req.query.to;
+  }
+  connection.query(
+    `SELECT idItem ,  
       (SELECT JSON_OBJECT(
           'sell',IFNULL(SUM(CASE WHEN invoice.invoiceTypeId = 1 THEN count ELSE 0 END),0),
           'buy',IFNULL(SUM(CASE WHEN invoice.invoiceTypeId = 2 THEN count ELSE 0 END),0),
@@ -170,15 +167,14 @@ router.get(
           'buyRestore',IFNULL(SUM(CASE WHEN invoice.invoiceTypeId = 4 THEN count ELSE 0 END),0),
           'tempBuy',IFNULL(SUM(CASE WHEN invoice.invoiceTypeId = 5 THEN count ELSE 0 END),0)
       ) FROM invoiceContent JOIN invoice ON invoiceContent.invoiceId = invoice.idInvoice WHERE invoiceContent.invoiceId IN (SELECT idInvoice FROM invoice WHERE invoice.createdAt BETWEEN '${date1} 00:00:00' AND '${date2} 23:59:59') AND invoiceContent.itemId = item.idItem) As stocks FROM item WHERE item.isAvailable = 1`,
-      (err, result) => {
-        res.send(result);
-        if (err) {
-          console.log(err);
-        }
-      },
-    );
-  },
-);
+    (err, result) => {
+      res.send(result);
+      if (err) {
+        console.log(err);
+      }
+    },
+  );
+});
 
 router.get("/detailedStoreByUser/:userId", function (req, res, next) {
   if (
