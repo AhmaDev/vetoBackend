@@ -163,9 +163,7 @@ router.get("/compressedDetailedStore", function (req, res, next) {
       (SELECT JSON_OBJECT(
           'sell',IFNULL(SUM(CASE WHEN invoice.invoiceTypeId = 1 THEN count ELSE 0 END),0),
           'buy',IFNULL(SUM(CASE WHEN invoice.invoiceTypeId = 2 THEN count ELSE 0 END),0),
-          'restore',IFNULL(SUM(CASE WHEN invoice.invoiceTypeId = 3 THEN count ELSE 0 END),0),
-          'buyRestore',IFNULL(SUM(CASE WHEN invoice.invoiceTypeId = 4 THEN count ELSE 0 END),0),
-          'tempBuy',IFNULL(SUM(CASE WHEN invoice.invoiceTypeId = 5 THEN count ELSE 0 END),0)
+          'restore',IFNULL(SUM(CASE WHEN invoice.invoiceTypeId = 3 THEN count ELSE 0 END),0)
       ) FROM invoiceContent JOIN invoice ON invoiceContent.invoiceId = invoice.idInvoice WHERE invoiceContent.invoiceId IN (SELECT idInvoice FROM invoice WHERE invoice.createdAt BETWEEN '${date1} 00:00:00' AND '${date2} 23:59:59') AND invoiceContent.itemId = item.idItem) As stocks FROM item WHERE item.isAvailable = 1`,
     (err, result) => {
       res.send(result);
