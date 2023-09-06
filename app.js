@@ -33,6 +33,7 @@ var deliveryStatus = require("./routes/deliveryStatus");
 var dashboard = require("./routes/dashboard");
 var brand = require("./routes/brand");
 var log = require("./routes/log");
+var package = require("./routes/package");
 
 var app = express();
 let onlineUsers = [];
@@ -110,6 +111,7 @@ app.use("/deliveryStatus", deliveryStatus);
 app.use("/dashboard", dashboard);
 app.use("/brands", brand);
 app.use("/log", log);
+app.use("/package", package);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
