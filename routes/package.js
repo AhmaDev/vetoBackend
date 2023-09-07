@@ -7,10 +7,12 @@ var connection = mysql.createConnection(db);
 /* GET sellPrice listing. */
 router.get("/", function (req, res, next) {
   connection.query("SELECT * FROM package", (err, result) => {
-    res.send(result);
-    if (err) {
-      console.log(err);
-    }
+    connection.query(`SELECT * FROM packageItem`, (err2, result2) => {
+      let packages = result.forEach((element) => {
+        element.items = result2.filter((e) => e.packageId == element.idPackage);
+      });
+      res.send(packages);
+    });
   });
 });
 /* GET sellPrice listing. */
@@ -19,10 +21,14 @@ router.get("/sellPrice/:sellPriceId", function (req, res, next) {
     "SELECT * FROM package WHERE sellPriceId = ?",
     [req.params.sellPriceId],
     (err, result) => {
-      res.send(result);
-      if (err) {
-        console.log(err);
-      }
+      connection.query(`SELECT * FROM packageItem`, (err2, result2) => {
+        let packages = result.forEach((element) => {
+          element.items = result2.filter(
+            (e) => e.packageId == element.idPackage,
+          );
+        });
+        res.send(packages);
+      });
     },
   );
 });
