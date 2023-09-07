@@ -35,6 +35,38 @@ router.post("/new", function (req, res, next) {
     }
   });
 });
+router.post("/addPackage", function (req, res, next) {
+  connection.query(
+    "INSERT INTO package SET ?",
+    [req.body.package],
+    (err, result) => {
+      if (err) {
+        console.log(err);
+        res.sendStatus(500);
+      } else {
+        let insertId = result.insertId;
+        let items = req.body.items.map((e) => [
+          e.itemId,
+          e.count,
+          e.isGift ? 7 : 0,
+          insertId,
+        ]);
+        connection.query(
+          `INSERT INTO packageItem (itemId,count,discountTypeId,packageId) VALUES ?`,
+          [items],
+          (itemsErr, itemsRes) => {
+            if (itemsErr) {
+              console.log(itemsErr);
+              res.sendStatus(500);
+            } else {
+              res.sendStatus(200);
+            }
+          },
+        );
+      }
+    },
+  );
+});
 router.post("/addItem", function (req, res, next) {
   connection.query(
     "INSERT INTO packageItem SET ?",
