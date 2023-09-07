@@ -128,6 +128,9 @@ router.delete("/delete/:id", function (req, res, next) {
     `DELETE FROM package WHERE idPackage = ${req.params["id"]}`,
     [req.body],
     (err, result) => {
+      connection.query(
+        `DELETE FROM packageItem WHERE packageId = ${req.params.id}`,
+      );
       res.send(result);
       if (err) {
         console.log(err);
