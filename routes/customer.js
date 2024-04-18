@@ -310,6 +310,18 @@ router.get("/search/:userId", function (req, res, next) {
   );
 });
 
+router.get("/statistics/:customerId", function (req, res, next) {
+  connection.query(
+    `SELECT COUNT(idInvoice) As total, "invoices" As method FROM invoice WHERE invoice.customerId = ${req.params.customerId} AND DATE(invoice.createdAt) = CURDATE() UNION SELECT COUNT(idVisit) As total, "visits" As method FROM visit WHERE visit.customerId = ${req.params.customerId} AND DATE(visit.createdAt) = CURDATE()`,
+    (err, result) => {
+      res.send(result);
+      if (err) {
+        console.log(err);
+      }
+    },
+  );
+});
+
 router.post("/new", upload.array("files", 4), function (req, res, next) {
   connection.query(
     "INSERT INTO customer SET ?",
