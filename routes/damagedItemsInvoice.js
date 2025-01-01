@@ -191,7 +191,7 @@ router.post("/new", function (req, res, next) {
       for (let i = 0; i < req.body.invoiceContents.length; i++) {
         req.body.invoiceContents[i].damagedItemsInvoiceId = result.insertId;
         connection.query(
-          `INSERT INTO damagedItemsInvoiceContents SET itemId = ?, count = ?, price = (SELECT damagedItemPrice FROM itemPrice WHERE itemPrice.itemId = ? AND itemPrice.sellPriceId = (SELECT sellPriceId FROM userInfo WHERE userInfo.userId = req.body.invoice.createdBy LIMIT 1) LIMIT 1), totalPrice = (SELECT damagedItemPrice FROM itemPrice WHERE itemPrice.itemId = ? AND itemPrice.sellPriceId = (SELECT sellPriceId FROM userInfo WHERE userInfo.userId = req.body.invoice.createdBy LIMIT 1) LIMIT 1) * ?, damagedItemsInvoiceId = ?`,
+          `INSERT INTO damagedItemsInvoiceContents SET itemId = ?, count = ?, price = (SELECT damagedItemPrice FROM itemPrice WHERE itemPrice.itemId = ? AND itemPrice.sellPriceId = (SELECT sellPriceId FROM userInfo WHERE userInfo.userId = ${req.body.invoice.createdBy}  LIMIT 1) LIMIT 1), totalPrice = (SELECT damagedItemPrice FROM itemPrice WHERE itemPrice.itemId = ? AND itemPrice.sellPriceId = (SELECT sellPriceId FROM userInfo WHERE userInfo.userId = ${req.body.invoice.createdBy} LIMIT 1) LIMIT 1) * ?, damagedItemsInvoiceId = ?`,
           [
             req.body.invoiceContents[i].itemId,
             req.body.invoiceContents[i].count,
