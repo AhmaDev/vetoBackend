@@ -139,51 +139,131 @@ router.get("/overviewHuge-new", function (req, res, next) {
       user.idUser,
       user.username,
       '******' AS password,
-      IFNULL(invoiceStats.totalSelling, 0) AS totalSelling,
-      IFNULL(invoiceStats.totalRestores, 0) AS totalRestores,
-      (IFNULL(invoiceStats.totalSelling, 0) - IFNULL(invoiceStats.totalRestores, 0)) AS totalRemaining,
-      IFNULL(invoiceStats.invoicesCount, 0) AS invoicesCount,
-      IFNULL(invoiceStats.restoresCount, 0) AS restoresCount,
-      IFNULL(invoiceStats.totalGifts, 0) AS totalGifts,
-      IFNULL(invoiceStats.totalOffers, 0) AS totalOffers,
-      invoiceStats.firstInvoiceDate,
-      invoiceStats.lastInvoiceDate,
+
+      IFNULL(sales.totalSelling, 0) AS totalSelling,
+      IFNULL(sales.totalRestores, 0) AS totalRestores,
+      (IFNULL(sales.totalSelling, 0) - IFNULL(sales.totalRestores, 0)) AS totalRemaining,
+
+      IFNULL(invoiceCounts.invoicesCount, 0) AS invoicesCount,
+      IFNULL(invoiceCounts.restoresCount, 0) AS restoresCount,
+
+      IFNULL(gifts.totalGifts, 0) AS totalGifts,
+      IFNULL(offers.totalOffers, 0) AS totalOffers,
+
+      firstInvoice.firstInvoiceDate,
+      lastInvoice.lastInvoiceDate,
+
       IFNULL(visitStats.totalVisits, 0) AS totalVisits,
-      visitStats.firstVisitDate,
-      visitStats.lastVisitDate,
+      firstVisit.firstVisitDate,
+      lastVisit.lastVisitDate,
+
       IFNULL(customerStats.totalCustomers, 0) AS totalCustomers,
       IFNULL(damagedStats.totalDamaged, 0) AS totalDamaged,
+
       userInfo.*,
       sellPrice.*
     FROM user
     JOIN userInfo ON userInfo.userId = user.idUser
     JOIN sellPrice ON sellPrice.idSellPrice = userInfo.sellPriceId
+
+    -- Total Selling and Restores
     LEFT JOIN (
       SELECT
         invoice.createdBy AS userId,
-        IFNULL(SUM(CASE WHEN invoice.invoiceTypeId = 1 THEN invoiceContent.total ELSE 0 END), 0) AS totalSelling,
-        IFNULL(SUM(CASE WHEN invoice.invoiceTypeId = 3 THEN invoiceContent.total ELSE 0 END), 0) AS totalRestores,
-        COUNT(CASE WHEN invoice.invoiceTypeId = 1 THEN 1 ELSE NULL END) AS invoicesCount,
-        COUNT(CASE WHEN invoice.invoiceTypeId = 3 THEN 1 ELSE NULL END) AS restoresCount,
-        IFNULL(SUM(CASE WHEN invoiceContent.discountTypeId = 1 THEN invoiceContent.count * invoiceContent.price ELSE 0 END), 0) AS totalGifts,
-        IFNULL(SUM(CASE WHEN invoiceContent.discountTypeId = 7 THEN invoiceContent.count * invoiceContent.price ELSE 0 END), 0) AS totalOffers,
-        MIN(invoice.createdAt) AS firstInvoiceDate,
-        MAX(invoice.createdAt) AS lastInvoiceDate
+        SUM(CASE WHEN invoice.invoiceTypeId = 1 THEN invoiceContent.total ELSE 0 END) AS totalSelling,
+        SUM(CASE WHEN invoice.invoiceTypeId = 3 THEN invoiceContent.total ELSE 0 END) AS totalRestores
       FROM invoiceContent
       JOIN invoice ON invoice.idInvoice = invoiceContent.invoiceId
       WHERE invoice.createdAt BETWEEN '${date1} 00:00:00' AND '${date2} 23:59:59'
       GROUP BY invoice.createdBy
-    ) AS invoiceStats ON invoiceStats.userId = user.idUser
+    ) AS sales ON sales.userId = user.idUser
+
+    -- Invoice Count and Restore Count
     LEFT JOIN (
       SELECT
         createdBy AS userId,
-        COUNT(*) AS totalVisits,
-        MIN(createdAt) AS firstVisitDate,
-        MAX(createdAt) AS lastVisitDate
+        COUNT(CASE WHEN invoiceTypeId = 1 THEN 1 ELSE NULL END) AS invoicesCount,
+        COUNT(CASE WHEN invoiceTypeId = 3 THEN 1 ELSE NULL END) AS restoresCount
+      FROM invoice
+      WHERE createdAt BETWEEN '${date1} 00:00:00' AND '${date2} 23:59:59'
+      GROUP BY createdBy
+    ) AS invoiceCounts ON invoiceCounts.userId = user.idUser
+
+    -- Total Gifts
+    LEFT JOIN (
+      SELECT
+        invoice.createdBy AS userId,
+        SUM(invoiceContent.count * invoiceContent.price) AS totalGifts
+      FROM invoiceContent
+      JOIN invoice ON invoice.idInvoice = invoiceContent.invoiceId
+      WHERE invoiceContent.discountTypeId = 1
+        AND invoice.createdAt BETWEEN '${date1} 00:00:00' AND '${date2} 23:59:59'
+      GROUP BY invoice.createdBy
+    ) AS gifts ON gifts.userId = user.idUser
+
+    -- Total Offers
+    LEFT JOIN (
+      SELECT
+        invoice.createdBy AS userId,
+        SUM(invoiceContent.count * invoiceContent.price) AS totalOffers
+      FROM invoiceContent
+      JOIN invoice ON invoice.idInvoice = invoiceContent.invoiceId
+      WHERE invoiceContent.discountTypeId = 7
+        AND invoice.createdAt BETWEEN '${date1} 00:00:00' AND '${date2} 23:59:59'
+      GROUP BY invoice.createdBy
+    ) AS offers ON offers.userId = user.idUser
+
+    -- First Invoice Date
+    LEFT JOIN (
+      SELECT
+        createdBy AS userId,
+        MIN(createdAt) AS firstInvoiceDate
+      FROM invoice
+      WHERE createdAt BETWEEN '${date1} 00:00:00' AND '${date2} 23:59:59'
+      GROUP BY createdBy
+    ) AS firstInvoice ON firstInvoice.userId = user.idUser
+
+    -- Last Invoice Date
+    LEFT JOIN (
+      SELECT
+        createdBy AS userId,
+        MAX(createdAt) AS lastInvoiceDate
+      FROM invoice
+      WHERE createdAt BETWEEN '${date1} 00:00:00' AND '${date2} 23:59:59'
+      GROUP BY createdBy
+    ) AS lastInvoice ON lastInvoice.userId = user.idUser
+
+    -- Visit Stats
+    LEFT JOIN (
+      SELECT
+        createdBy AS userId,
+        COUNT(*) AS totalVisits
       FROM visit
       WHERE createdAt BETWEEN '${date1} 00:00:00' AND '${date2} 23:59:59'
       GROUP BY createdBy
     ) AS visitStats ON visitStats.userId = user.idUser
+
+    -- First Visit
+    LEFT JOIN (
+      SELECT
+        createdBy AS userId,
+        MIN(createdAt) AS firstVisitDate
+      FROM visit
+      WHERE createdAt BETWEEN '${date1} 00:00:00' AND '${date2} 23:59:59'
+      GROUP BY createdBy
+    ) AS firstVisit ON firstVisit.userId = user.idUser
+
+    -- Last Visit
+    LEFT JOIN (
+      SELECT
+        createdBy AS userId,
+        MAX(createdAt) AS lastVisitDate
+      FROM visit
+      WHERE createdAt BETWEEN '${date1} 00:00:00' AND '${date2} 23:59:59'
+      GROUP BY createdBy
+    ) AS lastVisit ON lastVisit.userId = user.idUser
+
+    -- Total Customers
     LEFT JOIN (
       SELECT
         createdBy AS userId,
@@ -194,6 +274,8 @@ router.get("/overviewHuge-new", function (req, res, next) {
         AND createdAt BETWEEN '${date1} 00:00:00' AND '${date2} 23:59:59'
       GROUP BY createdBy
     ) AS customerStats ON customerStats.userId = user.idUser
+
+    -- Total Damaged
     LEFT JOIN (
       SELECT
         damagedItemsInvoice.createdBy AS userId,
@@ -203,6 +285,7 @@ router.get("/overviewHuge-new", function (req, res, next) {
       WHERE damagedItemsInvoice.createdAt BETWEEN '${date1} 00:00:00' AND '${date2} 23:59:59'
       GROUP BY damagedItemsInvoice.createdBy
     ) AS damagedStats ON damagedStats.userId = user.idUser
+
     WHERE user.roleId IN (4, 3)
     ${extraWhere};
   `;
@@ -215,6 +298,7 @@ router.get("/overviewHuge-new", function (req, res, next) {
     res.send(result);
   });
 });
+
 
 
 
