@@ -107,6 +107,120 @@ router.get("/overviewHuge", function (req, res, next) {
     },
   );
 });
+
+router.get("/overviewHuge-new", function (req, res, next) {
+  // ✅ Default day filter
+  const days =
+    req.query.days ??
+    "'sunday','monday','tuesday','wednesday','thursday','friday','saturday'";
+
+  // ✅ Date range filter
+  let date1, date2;
+  if (!req.query.from || !req.query.to) {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = (today.getMonth() + 1).toString().padStart(2, "0");
+    const day = today.getDate().toString().padStart(2, "0");
+    date1 = `${year}-${month}-${day}`;
+    date2 = `${year}-${month}-${day}`;
+  } else {
+    date1 = req.query.from;
+    date2 = req.query.to;
+  }
+
+  // ✅ Additional filters
+  let extraWhere = "";
+  if (req.query.superVisorId !== undefined) {
+    extraWhere += ` AND userInfo.superVisorId = ${req.query.superVisorId}`;
+  }
+  if (req.query.delegateId !== undefined) {
+    extraWhere += ` AND user.idUser IN (${req.query.delegateId})`;
+  }
+
+  // ✅ Final Query
+  const sql = `
+    SELECT
+      user.idUser,
+      user.username,
+      '******' AS password,
+      invoiceStats.totalSelling,
+      invoiceStats.totalRestores,
+      (IFNULL(invoiceStats.totalSelling, 0) - IFNULL(invoiceStats.totalRestores, 0)) AS totalRemaining,
+      invoiceStats.invoicesCount,
+      invoiceStats.restoresCount,
+      invoiceStats.totalGifts,
+      invoiceStats.totalOffers,
+      invoiceStats.firstInvoiceDate,
+      invoiceStats.lastInvoiceDate,
+      visitStats.totalVisits,
+      visitStats.firstVisitDate,
+      visitStats.lastVisitDate,
+      customerStats.totalCustomers,
+      damagedStats.totalDamaged,
+      userInfo.*,
+      sellPrice.*
+    FROM user
+    JOIN userInfo ON userInfo.userId = user.idUser
+    JOIN sellPrice ON sellPrice.idSellPrice = userInfo.sellPriceId
+    LEFT JOIN (
+      SELECT
+        invoice.createdBy AS userId,
+        SUM(CASE WHEN invoice.invoiceTypeId = 1 THEN invoiceContent.total ELSE 0 END) AS totalSelling,
+        SUM(CASE WHEN invoice.invoiceTypeId = 3 THEN invoiceContent.total ELSE 0 END) AS totalRestores,
+        COUNT(CASE WHEN invoice.invoiceTypeId = 1 THEN 1 ELSE NULL END) AS invoicesCount,
+        COUNT(CASE WHEN invoice.invoiceTypeId = 3 THEN 1 ELSE NULL END) AS restoresCount,
+        SUM(CASE WHEN invoiceContent.discountTypeId = 1 THEN invoiceContent.count * invoiceContent.price ELSE 0 END) AS totalGifts,
+        SUM(CASE WHEN invoiceContent.discountTypeId = 7 THEN invoiceContent.count * invoiceContent.price ELSE 0 END) AS totalOffers,
+        MIN(invoice.createdAt) AS firstInvoiceDate,
+        MAX(invoice.createdAt) AS lastInvoiceDate
+      FROM invoiceContent
+      JOIN invoice ON invoice.idInvoice = invoiceContent.invoiceId
+      WHERE invoice.createdAt BETWEEN '${date1} 00:00:00' AND '${date2} 23:59:59'
+      GROUP BY invoice.createdBy
+    ) AS invoiceStats ON invoiceStats.userId = user.idUser
+    LEFT JOIN (
+      SELECT
+        createdBy AS userId,
+        COUNT(*) AS totalVisits,
+        MIN(createdAt) AS firstVisitDate,
+        MAX(createdAt) AS lastVisitDate
+      FROM visit
+      WHERE createdAt BETWEEN '${date1} 00:00:00' AND '${date2} 23:59:59'
+      GROUP BY createdBy
+    ) AS visitStats ON visitStats.userId = user.idUser
+    LEFT JOIN (
+      SELECT
+        createdBy AS userId,
+        COUNT(*) AS totalCustomers
+      FROM customer
+      WHERE isManufacture = 0 AND visitDay IN (${days})
+      GROUP BY createdBy
+    ) AS customerStats ON customerStats.userId = user.idUser
+    LEFT JOIN (
+      SELECT
+        damagedItemsInvoice.createdBy AS userId,
+        SUM(totalPrice) AS totalDamaged
+      FROM damagedItemsInvoice
+      JOIN damagedItemsInvoiceContents ON damagedItemsInvoice.idDamagedItemsInvoice = damagedItemsInvoiceContents.damagedItemsInvoiceId
+      WHERE damagedItemsInvoice.createdAt BETWEEN '${date1} 00:00:00' AND '${date2} 23:59:59'
+      GROUP BY damagedItemsInvoice.createdBy
+    ) AS damagedStats ON damagedStats.userId = user.idUser
+    WHERE user.roleId IN (4, 3)
+    ${extraWhere};
+  `;
+
+  // ✅ Run Query
+  connection.query(sql, (err, result) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).send("Database error");
+    }
+    res.send(result);
+  });
+});
+
+
+
 router.get("/delegateItems/:id", function (req, res, next) {
   connection.query(
     `SELECT IFNULL(SUM(invoiceContent.total),0) As totalPrice, IFNULL(SUM(invoiceContent.count),0) As totalCount, (SELECT  IFNULL(CONCAT(itemType , ' ' , itemName,' ' , itemWeight, ' ' ,itemWeightSuffix, ' ' , ' * ' , cartonQauntity , ' ' , brand.brandName), item.itemName)  FROM item LEFT JOIN itemGroup ON item.itemGroupId = itemGroup.idItemGroup LEFT JOIN brand ON item.brandId = brand.idBrand LEFT JOIN itemType ON itemType.idItemType = item.itemTypeId  WHERE invoiceContent.itemId = item.idItem LIMIT 1) As itemName FROM invoiceContent JOIN invoice ON invoiceContent.invoiceId = invoice.idInvoice WHERE DATE(invoice.createdAt) = '${req.query.date}' AND invoice.createdBy = ${req.params.id} AND invoice.invoiceTypeId = ${req.query.type} GROUP BY invoiceContent.itemId ORDER BY totalCount DESC`,
