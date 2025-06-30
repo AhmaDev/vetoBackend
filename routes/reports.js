@@ -109,12 +109,10 @@ router.get("/overviewHuge", function (req, res, next) {
 });
 
 router.get("/overviewHuge-new", function (req, res, next) {
-  // ✅ Default day filter
   const days =
     req.query.days ??
     "'sunday','monday','tuesday','wednesday','thursday','friday','saturday'";
 
-  // ✅ Date range filter
   let date1, date2;
   if (!req.query.from || !req.query.to) {
     const today = new Date();
@@ -128,7 +126,6 @@ router.get("/overviewHuge-new", function (req, res, next) {
     date2 = req.query.to;
   }
 
-  // ✅ Additional filters
   let extraWhere = "";
   if (req.query.superVisorId !== undefined) {
     extraWhere += ` AND userInfo.superVisorId = ${req.query.superVisorId}`;
@@ -137,7 +134,6 @@ router.get("/overviewHuge-new", function (req, res, next) {
     extraWhere += ` AND user.idUser IN (${req.query.delegateId})`;
   }
 
-  // ✅ Final Query
   const sql = `
     SELECT
       user.idUser,
@@ -193,7 +189,9 @@ router.get("/overviewHuge-new", function (req, res, next) {
         createdBy AS userId,
         COUNT(*) AS totalCustomers
       FROM customer
-      WHERE isManufacture = 0 AND visitDay IN (${days})
+      WHERE isManufacture = 0
+        AND visitDay IN (${days})
+        AND createdAt BETWEEN '${date1} 00:00:00' AND '${date2} 23:59:59'
       GROUP BY createdBy
     ) AS customerStats ON customerStats.userId = user.idUser
     LEFT JOIN (
@@ -209,7 +207,6 @@ router.get("/overviewHuge-new", function (req, res, next) {
     ${extraWhere};
   `;
 
-  // ✅ Run Query
   connection.query(sql, (err, result) => {
     if (err) {
       console.error(err);
@@ -218,6 +215,7 @@ router.get("/overviewHuge-new", function (req, res, next) {
     res.send(result);
   });
 });
+
 
 
 
