@@ -271,7 +271,6 @@ router.get("/overviewHuge-new", function (req, res, next) {
       FROM customer
       WHERE isManufacture = 0
         AND visitDay IN (${days})
-        AND createdAt BETWEEN '${date1} 00:00:00' AND '${date2} 23:59:59'
       GROUP BY createdBy
     ) AS customerStats ON customerStats.userId = user.idUser
 
