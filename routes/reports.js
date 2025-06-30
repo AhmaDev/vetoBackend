@@ -143,20 +143,20 @@ router.get("/overviewHuge-new", function (req, res, next) {
       user.idUser,
       user.username,
       '******' AS password,
-      invoiceStats.totalSelling,
-      invoiceStats.totalRestores,
+      IFNULL(invoiceStats.totalSelling, 0) AS totalSelling,
+      IFNULL(invoiceStats.totalRestores, 0) AS totalRestores,
       (IFNULL(invoiceStats.totalSelling, 0) - IFNULL(invoiceStats.totalRestores, 0)) AS totalRemaining,
-      invoiceStats.invoicesCount,
-      invoiceStats.restoresCount,
-      invoiceStats.totalGifts,
-      invoiceStats.totalOffers,
+      IFNULL(invoiceStats.invoicesCount, 0) AS invoicesCount,
+      IFNULL(invoiceStats.restoresCount, 0) AS restoresCount,
+      IFNULL(invoiceStats.totalGifts, 0) AS totalGifts,
+      IFNULL(invoiceStats.totalOffers, 0) AS totalOffers,
       invoiceStats.firstInvoiceDate,
       invoiceStats.lastInvoiceDate,
-      visitStats.totalVisits,
+      IFNULL(visitStats.totalVisits, 0) AS totalVisits,
       visitStats.firstVisitDate,
       visitStats.lastVisitDate,
-      customerStats.totalCustomers,
-      damagedStats.totalDamaged,
+      IFNULL(customerStats.totalCustomers, 0) AS totalCustomers,
+      IFNULL(damagedStats.totalDamaged, 0) AS totalDamaged,
       userInfo.*,
       sellPrice.*
     FROM user
@@ -165,12 +165,12 @@ router.get("/overviewHuge-new", function (req, res, next) {
     LEFT JOIN (
       SELECT
         invoice.createdBy AS userId,
-        SUM(CASE WHEN invoice.invoiceTypeId = 1 THEN invoiceContent.total ELSE 0 END) AS totalSelling,
-        SUM(CASE WHEN invoice.invoiceTypeId = 3 THEN invoiceContent.total ELSE 0 END) AS totalRestores,
+        IFNULL(SUM(CASE WHEN invoice.invoiceTypeId = 1 THEN invoiceContent.total ELSE 0 END), 0) AS totalSelling,
+        IFNULL(SUM(CASE WHEN invoice.invoiceTypeId = 3 THEN invoiceContent.total ELSE 0 END), 0) AS totalRestores,
         COUNT(CASE WHEN invoice.invoiceTypeId = 1 THEN 1 ELSE NULL END) AS invoicesCount,
         COUNT(CASE WHEN invoice.invoiceTypeId = 3 THEN 1 ELSE NULL END) AS restoresCount,
-        SUM(CASE WHEN invoiceContent.discountTypeId = 1 THEN invoiceContent.count * invoiceContent.price ELSE 0 END) AS totalGifts,
-        SUM(CASE WHEN invoiceContent.discountTypeId = 7 THEN invoiceContent.count * invoiceContent.price ELSE 0 END) AS totalOffers,
+        IFNULL(SUM(CASE WHEN invoiceContent.discountTypeId = 1 THEN invoiceContent.count * invoiceContent.price ELSE 0 END), 0) AS totalGifts,
+        IFNULL(SUM(CASE WHEN invoiceContent.discountTypeId = 7 THEN invoiceContent.count * invoiceContent.price ELSE 0 END), 0) AS totalOffers,
         MIN(invoice.createdAt) AS firstInvoiceDate,
         MAX(invoice.createdAt) AS lastInvoiceDate
       FROM invoiceContent
@@ -199,7 +199,7 @@ router.get("/overviewHuge-new", function (req, res, next) {
     LEFT JOIN (
       SELECT
         damagedItemsInvoice.createdBy AS userId,
-        SUM(totalPrice) AS totalDamaged
+        IFNULL(SUM(totalPrice), 0) AS totalDamaged
       FROM damagedItemsInvoice
       JOIN damagedItemsInvoiceContents ON damagedItemsInvoice.idDamagedItemsInvoice = damagedItemsInvoiceContents.damagedItemsInvoiceId
       WHERE damagedItemsInvoice.createdAt BETWEEN '${date1} 00:00:00' AND '${date2} 23:59:59'
@@ -218,6 +218,7 @@ router.get("/overviewHuge-new", function (req, res, next) {
     res.send(result);
   });
 });
+
 
 
 
