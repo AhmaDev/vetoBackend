@@ -30,6 +30,68 @@ router.get("/items", function (req, res, next) {
     },
   );
 });
+router.get("/items-new", function (req, res, next) {
+  let dateQuery = "";
+
+  if (req.query.from != undefined) {
+    dateQuery = `AND DATE(invoice.createdAt) BETWEEN '${req.query.from}' AND '${req.query.to}'`;
+  }
+  connection.query(
+    `SELECT 
+    user.username,
+    user.idUser,
+    customer.idCustomer,
+    customer.storeName,
+    invoiceContent.*,
+    discount.*,
+    IFNULL(CONCAT(itemType , ' ', itemName, ' ', itemWeight, ' ', itemWeightSuffix, ' * ', cartonQauntity, ' ', brand.brandName), item.itemName) AS fullItemName,
+    item.imagePath,
+    DATE_FORMAT(invoice.createdAt, '%Y-%m-%d') AS creationFixedDate,
+    DATE_FORMAT(invoice.createdAt, '%r') AS creationFixedTime,
+    DATE_FORMAT(invoice.createdAt, '%W') AS creationDayName,
+    SUM(invoiceContent.count) AS count,
+    IFNULL(subNotFree.notFreeCount, 0) AS notFreeCount,
+    IFNULL(totalPricePerInvoice.totalPrice, 0) AS totalPrice,
+    IFNULL(totalPricePerUser.totalInvoicesPrice, 0) AS totalInvoicesPrice
+  FROM invoiceContent
+  JOIN item ON item.idItem = invoiceContent.itemId
+  LEFT JOIN brand ON item.brandId = brand.idBrand
+  LEFT JOIN itemType ON itemType.idItemType = item.itemTypeId
+  JOIN invoice ON invoiceContent.invoiceId = invoice.idInvoice
+  LEFT JOIN discount ON invoiceContent.discountTypeId = discount.idDiscount
+  LEFT JOIN customer ON customer.idCustomer = invoice.customerId
+  JOIN user ON user.idUser = invoice.createdBy
+  LEFT JOIN (
+      SELECT itemId, invoiceId, SUM(count) AS notFreeCount
+      FROM invoiceContent
+      WHERE discountTypeId = 0
+      GROUP BY itemId, invoiceId
+  ) AS subNotFree ON subNotFree.itemId = invoiceContent.itemId AND subNotFree.invoiceId = invoiceContent.invoiceId
+  LEFT JOIN (
+      SELECT invoiceId, SUM(total) AS totalPrice
+      FROM invoiceContent
+      GROUP BY invoiceId
+  ) AS totalPricePerInvoice ON totalPricePerInvoice.invoiceId = invoiceContent.invoiceId
+  LEFT JOIN (
+      SELECT invoice.createdBy AS userId, SUM(subInvoiceContent.total) AS totalInvoicesPrice
+      FROM invoiceContent AS subInvoiceContent
+      JOIN invoice ON invoice.idInvoice = subInvoiceContent.invoiceId
+      WHERE invoice.invoiceTypeId = 1
+        AND DATE(invoice.createdAt) BETWEEN '${req.query.from}' AND '${req.query.to}'
+      GROUP BY invoice.createdBy
+  ) AS totalPricePerUser ON totalPricePerUser.userId = user.idUser
+  WHERE invoiceContent.discountTypeId != 0
+    AND DATE(invoice.createdAt) BETWEEN '${req.query.from}' AND '${req.query.to}'
+  GROUP BY invoice.idInvoice, invoiceContent.itemId, discountTypeId;
+  `,
+    (err, result) => {
+      res.send(result);
+      if (err) {
+        console.log(err);
+      }
+    },
+  );
+});
 
 router.post("/new", function (req, res, next) {
   connection.query("INSERT INTO discount SET ?", [req.body], (err, result) => {
