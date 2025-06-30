@@ -263,6 +263,58 @@ router.get("/compressedDetailedStore", function (req, res, next) {
   }
 });
 
+router.get("/compressedDetailedStore-new", function (req, res, next) {
+  let date1, date2;
+  if (!req.query.from || !req.query.to) {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = (today.getMonth() + 1).toString().padStart(2, "0");
+    const day = today.getDate().toString().padStart(2, "0");
+    date1 = `${year}-${month}-${day}`;
+    date2 = `${year}-${month}-${day}`;
+  } else {
+    date1 = req.query.from;
+    date2 = req.query.to;
+  }
+
+  let partitionHint = "";
+  if (connection.config.database == "ovetoMmlka") {
+    partitionHint =
+      "PARTITION (p5,p6,p7,p8,p9,p10,p11,p12,p13,p14,p15,p16,p17,p18,p19,p20,p21,p22,p23,p24,p25,p26,p27,p28,p29,p30,p31,p32,p33,p34,p35)";
+  }
+
+  const sql = `
+    SELECT
+      item.idItem,
+      IFNULL(stockData.stocks, JSON_OBJECT('sell', 0, 'buy', 0, 'restore', 0)) AS stocks
+    FROM item
+    LEFT JOIN (
+      SELECT
+        invoiceContent.itemId,
+        JSON_OBJECT(
+          'sell', IFNULL(SUM(CASE WHEN invoice.invoiceTypeId = 1 THEN invoiceContent.count ELSE 0 END), 0),
+          'buy', IFNULL(SUM(CASE WHEN invoice.invoiceTypeId = 2 THEN invoiceContent.count ELSE 0 END), 0),
+          'restore', IFNULL(SUM(CASE WHEN invoice.invoiceTypeId = 3 THEN invoiceContent.count ELSE 0 END), 0)
+        ) AS stocks
+      FROM invoiceContent
+      ${partitionHint ? partitionHint : ""}
+      JOIN invoice ON invoice.idInvoice = invoiceContent.invoiceId
+      WHERE invoice.createdAt BETWEEN '${date1} 00:00:00' AND '${date2} 23:59:59'
+      GROUP BY invoiceContent.itemId
+    ) AS stockData ON stockData.itemId = item.idItem
+    WHERE item.isAvailable = 1;
+  `;
+
+  connection.query(sql, (err, result) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).send("Database error");
+    }
+    res.send(result);
+  });
+});
+
+
 router.get("/detailedStoreByUser/:userId", function (req, res, next) {
   if (
     req.query.from == undefined ||
