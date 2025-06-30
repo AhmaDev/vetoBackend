@@ -293,6 +293,77 @@ router.get("/detailedStoreByUser/:userId", function (req, res, next) {
   });
 });
 
+
+router.get("/detailedStoreByUser-new/:userId", function (req, res, next) {
+  let date1, date2;
+  if (!req.query.from || !req.query.to) {
+    const today = new Date();
+    date1 = "2010-01-01";
+    const year = today.getFullYear();
+    const month = (today.getMonth() + 1).toString().padStart(2, "0");
+    const day = today.getDate().toString().padStart(2, "0");
+    date2 = `${year}-${month}-${day}`;
+  } else {
+    date1 = req.query.from;
+    date2 = req.query.to;
+  }
+
+  const userId = req.params.userId;
+
+  const sql = `
+    SELECT
+      item.idItem,
+      customer.customerName AS manufactureName,
+      itemGroup.itemGroupName,
+      item.imagePath,
+      IFNULL(CONCAT(itemType, ' ', item.itemName, ' ', item.itemWeight, ' ', item.itemWeightSuffix, ' * ', item.cartonQauntity, ' ', brand.brandName), item.itemName) AS fullItemName,
+      IFNULL(sales.totalSell, 0) AS totalSell,
+      IFNULL(sales.totalSellPrice, 0) AS totalSellPrice,
+      IFNULL(damaged.totalDamaged, 0) AS totalDamaged,
+      IFNULL(damaged.totalDamagedPrice, 0) AS totalDamagedPrice
+    FROM item
+    LEFT JOIN customer ON customer.idCustomer = item.manufactureId
+    LEFT JOIN itemGroup ON item.itemGroupId = itemGroup.idItemGroup
+    LEFT JOIN brand ON item.brandId = brand.idBrand
+    LEFT JOIN itemType ON itemType.idItemType = item.itemTypeId
+    LEFT JOIN (
+      SELECT
+        invoiceContent.itemId,
+        SUM(invoiceContent.count) AS totalSell,
+        SUM(invoiceContent.total) AS totalSellPrice
+      FROM invoiceContent
+      JOIN invoice ON invoice.idInvoice = invoiceContent.invoiceId
+      WHERE invoice.invoiceTypeId = 1
+        AND invoice.createdAt BETWEEN '${date1} 00:00:00' AND '${date2} 23:59:59'
+        AND invoice.createdBy IN (${userId})
+      GROUP BY invoiceContent.itemId
+    ) AS sales ON sales.itemId = item.idItem
+    LEFT JOIN (
+      SELECT
+        damagedItemsInvoiceContents.itemId,
+        SUM(damagedItemsInvoiceContents.count / item.cartonQauntity) AS totalDamaged,
+        SUM(damagedItemsInvoiceContents.totalPrice) AS totalDamagedPrice
+      FROM damagedItemsInvoiceContents
+      JOIN damagedItemsInvoice ON damagedItemsInvoice.idDamagedItemsInvoice = damagedItemsInvoiceContents.damagedItemsInvoiceId
+      JOIN item ON item.idItem = damagedItemsInvoiceContents.itemId
+      WHERE damagedItemsInvoice.createdAt BETWEEN '${date1} 00:00:00' AND '${date2} 23:59:59'
+        AND damagedItemsInvoice.createdBy IN (${userId})
+      GROUP BY damagedItemsInvoiceContents.itemId
+    ) AS damaged ON damaged.itemId = item.idItem
+    WHERE item.isAvailable = 1;
+  `;
+
+  connection.query(sql, (err, result) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).send("Database error");
+    }
+    res.send(result);
+  });
+});
+
+
+
 router.get("/store", compression(), function (req, res, next) {
   connection.query(
     "SELECT *,IFNULL(CONCAT(itemType , ' ' , itemName,' ' , itemWeight, ' ' ,itemWeightSuffix, ' ' , ' * ' , cartonQauntity , ' ' , brand.brandName), item.itemName) As fullItemName, (SELECT @totalPlus := IFNULL(SUM(count), 0) FROM invoiceContent JOIN invoice ON invoiceContent.invoiceId = invoice.idInvoice JOIN invoiceType ON invoice.invoiceTypeId = invoiceType.idInvoiceType WHERE invoiceContent.itemId = item.idItem AND invoiceType.invoiceFunction = 'plus') AS totalPlus, (SELECT @totalMinus := IFNULL(SUM(count), 0) FROM invoiceContent JOIN invoice ON invoiceContent.invoiceId = invoice.idInvoice JOIN invoiceType ON invoice.invoiceTypeId = invoiceType.idInvoiceType WHERE invoiceContent.itemId = item.idItem AND invoiceType.invoiceFunction = 'minus') AS totalMinus, (@totalPlus - @totalMinus) AS store, (SELECT GROUP_CONCAT(json_object('price',price,'sellPriceId',sellPriceId,'sellPriceName',sellPriceName,'delegateTarget',delegateTarget, 'itemDescription', itemDescription , 'damagedItemPrice', damagedItemPrice)) FROM itemPrice JOIN sellPrice ON itemPrice.sellPriceId = sellPrice.idSellPrice WHERE itemPrice.itemId = item.idItem) As prices, DATEDIFF(CURRENT_DATE(),item.createdAt) As days FROM item LEFT JOIN itemGroup ON item.itemGroupId = itemGroup.idItemGroup LEFT JOIN brand ON item.brandId = brand.idBrand LEFT JOIN itemType ON itemType.idItemType = item.itemTypeId WHERE item.isAvailable = 1",
