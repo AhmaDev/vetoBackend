@@ -77,11 +77,11 @@ router.get("/items-new", function (req, res, next) {
       FROM invoiceContent AS subInvoiceContent
       JOIN invoice ON invoice.idInvoice = subInvoiceContent.invoiceId
       WHERE invoice.invoiceTypeId = 1
-        AND DATE(invoice.createdAt) BETWEEN '${req.query.from}' AND '${req.query.to}'
+        AND invoice.createdAt >= '${req.query.from} 00:00:00' AND invoice.createdAt <= '${req.query.to} 23:59:59'
       GROUP BY invoice.createdBy
   ) AS totalPricePerUser ON totalPricePerUser.userId = user.idUser
   WHERE invoiceContent.discountTypeId != 0
-    AND DATE(invoice.createdAt) BETWEEN '${req.query.from}' AND '${req.query.to}'
+    AND invoice.createdAt >= '${req.query.from} 00:00:00' AND invoice.createdAt <= '${req.query.to} 23:59:59'
   GROUP BY invoice.idInvoice, invoiceContent.itemId, discountTypeId;
   `,
     (err, result) => {
