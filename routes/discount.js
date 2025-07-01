@@ -31,13 +31,14 @@ router.get("/items", function (req, res, next) {
   );
 });
 router.get("/items-new", function (req, res, next) {
-  let dateQuery = "";
+  try {
+    let dateQuery = "";
 
-  if (req.query.from != undefined) {
-    dateQuery = `AND DATE(invoice.createdAt) BETWEEN '${req.query.from}' AND '${req.query.to}'`;
-  }
-  connection.query(
-    `SELECT 
+    if (req.query.from != undefined) {
+      dateQuery = `AND DATE(invoice.createdAt) BETWEEN '${req.query.from}' AND '${req.query.to}'`;
+    }
+    connection.query(
+      `SELECT 
     user.username,
     user.idUser,
     customer.idCustomer,
@@ -84,13 +85,18 @@ router.get("/items-new", function (req, res, next) {
     AND invoice.createdAt >= '${req.query.from} 00:00:00' AND invoice.createdAt <= '${req.query.to} 23:59:59'
   GROUP BY invoice.idInvoice, invoiceContent.itemId, discountTypeId;
   `,
-    (err, result) => {
-      res.send(result);
-      if (err) {
-        console.log(err);
-      }
-    },
-  );
+      (err, result) => {
+        res.send(result);
+        if (err) {
+          console.log(err);
+        }
+      },
+    );
+  } catch (error) {
+    console.log(error);
+
+  }
+
 });
 
 router.post("/new", function (req, res, next) {
