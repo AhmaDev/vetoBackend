@@ -159,13 +159,15 @@ router.get("/overviewHuge-new", function (req, res, next) {
 
       IFNULL(customerStats.totalCustomers, 0) AS totalCustomers,
       IFNULL(damagedStats.totalDamaged, 0) AS totalDamaged,
-IFNULL(supervisor.username, '') AS superVisorName,
+
+      IFNULL(supervisor.username, '') AS superVisorName,
 
       userInfo.*,
       sellPrice.*
     FROM user
     JOIN userInfo ON userInfo.userId = user.idUser
     JOIN sellPrice ON sellPrice.idSellPrice = userInfo.sellPriceId
+    LEFT JOIN user AS supervisor ON supervisor.idUser = userInfo.superVisorId
 
     -- Total Selling and Restores
     LEFT JOIN (
@@ -264,7 +266,7 @@ IFNULL(supervisor.username, '') AS superVisorName,
       GROUP BY createdBy
     ) AS lastVisit ON lastVisit.userId = user.idUser
 
-    -- Total Customers
+    -- Total Customers (no date filter, only by visitDay and isManufacture)
     LEFT JOIN (
       SELECT
         createdBy AS userId,
@@ -285,7 +287,6 @@ IFNULL(supervisor.username, '') AS superVisorName,
       WHERE damagedItemsInvoice.createdAt BETWEEN '${date1} 00:00:00' AND '${date2} 23:59:59'
       GROUP BY damagedItemsInvoice.createdBy
     ) AS damagedStats ON damagedStats.userId = user.idUser
-LEFT JOIN user AS supervisor ON supervisor.idUser = userInfo.superVisorId
 
     WHERE user.roleId IN (4, 3)
     ${extraWhere};
@@ -299,6 +300,7 @@ LEFT JOIN user AS supervisor ON supervisor.idUser = userInfo.superVisorId
     res.send(result);
   });
 });
+
 
 
 
