@@ -159,6 +159,7 @@ router.get("/overviewHuge-new", function (req, res, next) {
 
       IFNULL(customerStats.totalCustomers, 0) AS totalCustomers,
       IFNULL(damagedStats.totalDamaged, 0) AS totalDamaged,
+IFNULL(supervisor.username, '') AS superVisorName,
 
       userInfo.*,
       sellPrice.*
@@ -284,6 +285,7 @@ router.get("/overviewHuge-new", function (req, res, next) {
       WHERE damagedItemsInvoice.createdAt BETWEEN '${date1} 00:00:00' AND '${date2} 23:59:59'
       GROUP BY damagedItemsInvoice.createdBy
     ) AS damagedStats ON damagedStats.userId = user.idUser
+LEFT JOIN user AS supervisor ON supervisor.idUser = userInfo.superVisorId
 
     WHERE user.roleId IN (4, 3)
     ${extraWhere};
