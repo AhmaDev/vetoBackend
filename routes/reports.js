@@ -128,7 +128,7 @@ router.get("/overviewHuge-new", function (req, res, next) {
 
   let extraWhere = "";
   if (req.query.superVisorId !== undefined) {
-    extraWhere += ` AND sd.superVisorId = ${req.query.superVisorId}`;
+    extraWhere += ` AND userInfo.superVisorId = ${req.query.superVisorId}`;
   }
   if (req.query.delegateId !== undefined) {
     extraWhere += ` AND user.idUser IN (${req.query.delegateId})`;
@@ -160,16 +160,11 @@ router.get("/overviewHuge-new", function (req, res, next) {
       IFNULL(customerStats.totalCustomers, 0) AS totalCustomers,
       IFNULL(damagedStats.totalDamaged, 0) AS totalDamaged,
 
-      IFNULL(sd.superVisorId, 0) AS superVisorId,
-      IFNULL(supervisor.username, '') AS superVisorName,
-
       userInfo.*,
       sellPrice.*
     FROM user
     JOIN userInfo ON userInfo.userId = user.idUser
     JOIN sellPrice ON sellPrice.idSellPrice = userInfo.sellPriceId
-    LEFT JOIN supervisorDelegates AS sd ON sd.delegateId = user.idUser
-    LEFT JOIN user AS supervisor ON supervisor.idUser = sd.superVisorId
 
     -- Total Selling and Restores
     LEFT JOIN (
@@ -183,7 +178,7 @@ router.get("/overviewHuge-new", function (req, res, next) {
       GROUP BY invoice.createdBy
     ) AS sales ON sales.userId = user.idUser
 
-    -- Invoice Counts
+    -- Invoice Count and Restore Count
     LEFT JOIN (
       SELECT
         createdBy AS userId,
@@ -194,7 +189,7 @@ router.get("/overviewHuge-new", function (req, res, next) {
       GROUP BY createdBy
     ) AS invoiceCounts ON invoiceCounts.userId = user.idUser
 
-    -- Gifts
+    -- Total Gifts
     LEFT JOIN (
       SELECT
         invoice.createdBy AS userId,
@@ -206,7 +201,7 @@ router.get("/overviewHuge-new", function (req, res, next) {
       GROUP BY invoice.createdBy
     ) AS gifts ON gifts.userId = user.idUser
 
-    -- Offers
+    -- Total Offers
     LEFT JOIN (
       SELECT
         invoice.createdBy AS userId,
@@ -218,7 +213,7 @@ router.get("/overviewHuge-new", function (req, res, next) {
       GROUP BY invoice.createdBy
     ) AS offers ON offers.userId = user.idUser
 
-    -- First and Last Invoice
+    -- First Invoice Date
     LEFT JOIN (
       SELECT
         createdBy AS userId,
@@ -228,6 +223,7 @@ router.get("/overviewHuge-new", function (req, res, next) {
       GROUP BY createdBy
     ) AS firstInvoice ON firstInvoice.userId = user.idUser
 
+    -- Last Invoice Date
     LEFT JOIN (
       SELECT
         createdBy AS userId,
@@ -247,6 +243,7 @@ router.get("/overviewHuge-new", function (req, res, next) {
       GROUP BY createdBy
     ) AS visitStats ON visitStats.userId = user.idUser
 
+    -- First Visit
     LEFT JOIN (
       SELECT
         createdBy AS userId,
@@ -256,6 +253,7 @@ router.get("/overviewHuge-new", function (req, res, next) {
       GROUP BY createdBy
     ) AS firstVisit ON firstVisit.userId = user.idUser
 
+    -- Last Visit
     LEFT JOIN (
       SELECT
         createdBy AS userId,
@@ -265,7 +263,7 @@ router.get("/overviewHuge-new", function (req, res, next) {
       GROUP BY createdBy
     ) AS lastVisit ON lastVisit.userId = user.idUser
 
-    -- Customers (no date filter)
+    -- Total Customers
     LEFT JOIN (
       SELECT
         createdBy AS userId,
@@ -276,7 +274,7 @@ router.get("/overviewHuge-new", function (req, res, next) {
       GROUP BY createdBy
     ) AS customerStats ON customerStats.userId = user.idUser
 
-    -- Damaged Stats
+    -- Total Damaged
     LEFT JOIN (
       SELECT
         damagedItemsInvoice.createdBy AS userId,
@@ -299,7 +297,6 @@ router.get("/overviewHuge-new", function (req, res, next) {
     res.send(result);
   });
 });
-
 
 
 
