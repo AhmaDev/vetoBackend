@@ -43,6 +43,7 @@ router.get("/items-new", function (req, res, next) {
     user.idUser,
     customer.idCustomer,
     customer.storeName,
+    manufacturer.customerName AS manufactureName,
     invoiceContent.*,
     discount.*,
     IFNULL(CONCAT(itemType , ' ', itemName, ' ', itemWeight, ' ', itemWeightSuffix, ' * ', cartonQauntity, ' ', brand.brandName), item.itemName) AS fullItemName,
@@ -58,6 +59,7 @@ router.get("/items-new", function (req, res, next) {
   JOIN item ON item.idItem = invoiceContent.itemId
   LEFT JOIN brand ON item.brandId = brand.idBrand
   LEFT JOIN itemType ON itemType.idItemType = item.itemTypeId
+  LEFT JOIN customer AS manufacturer ON manufacturer.idCustomer = item.manufactureId
   JOIN invoice ON invoiceContent.invoiceId = invoice.idInvoice
   LEFT JOIN discount ON invoiceContent.discountTypeId = discount.idDiscount
   LEFT JOIN customer ON customer.idCustomer = invoice.customerId
