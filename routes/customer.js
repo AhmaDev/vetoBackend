@@ -177,15 +177,12 @@ router.get("/userWithInvoicesCount3/:id", function (req, res) {
     ORDER BY c.idCustomer;
   `;
 
-  console.log("SQL Query:", sql);
-  
-
   connection.query(sql, params, (err, rows) => {
     if (err) {
       console.error(err);
       return res.status(500).send("Database error");
     }
-    res.send(rows);
+    res.send(rows.filter(row => row.idSellPrice > 0));
   });
 });
 
