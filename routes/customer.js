@@ -153,8 +153,7 @@ router.get("/userWithInvoicesCount3/:id", function (req, res) {
   let dateClause = "";
   const params = [userId, userId];
   if (from && to) {
-    dateClause = " AND i.createdAt BETWEEN ? AND ? ";
-    params.push(from, to);
+    dateClause = ` AND i.createdAt BETWEEN '${from}' AND '${to}' `;
   }
 
   const sql = `
