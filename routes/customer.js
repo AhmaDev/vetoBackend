@@ -161,7 +161,7 @@ router.get("/userWithInvoicesCount3/:id", function (req, res) {
     SELECT
       c.*,
       sp.*,
-      COALESCE(inv.invoicesCount, 0) AS invoicesCount
+      COALESCE(inv.invoicesCount, 0) AS idSellPrice
     FROM customer AS c
     JOIN sellPrice AS sp
       ON sp.idSellPrice = c.sellPriceId
