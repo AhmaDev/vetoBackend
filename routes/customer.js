@@ -178,6 +178,9 @@ router.get("/userWithInvoicesCount3/:id", function (req, res) {
     ORDER BY c.idCustomer;
   `;
 
+  console.log("SQL Query:", sql);
+  
+
   connection.query(sql, params, (err, rows) => {
     if (err) {
       console.error(err);
