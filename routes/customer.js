@@ -141,6 +141,54 @@ router.get("/userWithInvoicesCount2/:id", function (req, res, next) {
   );
 });
 
+
+router.get("/userWithInvoicesCount3/:id", function (req, res) {
+  const userId = req.params.id;
+
+  // Optional: support ?from=YYYY-MM-DD&to=YYYY-MM-DD
+  const from = req.query.from ? `${req.query.from} 00:00:00` : null;
+  const to = req.query.to ? `${req.query.to} 23:59:59` : null;
+
+  // Build date filter for invoices if provided
+  let dateClause = "";
+  const params = [userId, userId];
+  if (from && to) {
+    dateClause = " AND i.createdAt BETWEEN ? AND ? ";
+    params.push(from, to);
+  }
+
+  const sql = `
+    SELECT
+      c.*,
+      sp.*,
+      COALESCE(inv.invoicesCount, 0) AS invoicesCount
+    FROM customer AS c
+    JOIN sellPrice AS sp
+      ON sp.idSellPrice = c.sellPriceId
+    LEFT JOIN (
+      SELECT i.customerId, i.createdBy, COUNT(*) AS invoicesCount
+      FROM invoice AS i
+      WHERE i.createdBy = ? ${dateClause}
+      GROUP BY i.customerId, i.createdBy
+    ) AS inv
+      ON inv.customerId = c.idCustomer
+     AND inv.createdBy  = c.createdBy
+    WHERE c.createdBy = ?
+      AND c.isManufacture = 0
+    ORDER BY c.idCustomer;
+  `;
+
+  connection.query(sql, params, (err, rows) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).send("Database error");
+    }
+    res.send(rows);
+  });
+});
+
+
+
 router.get("/filter/query", function (req, res, next) {
   let query = "";
   let order = "";
