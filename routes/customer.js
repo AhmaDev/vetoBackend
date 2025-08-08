@@ -182,7 +182,7 @@ router.get("/userWithInvoicesCount3/:id", function (req, res) {
       console.error(err);
       return res.status(500).send("Database error");
     }
-    res.send(rows.filter(row => row.idSellPrice > 0));
+    res.send(rows);
   });
 });
 
